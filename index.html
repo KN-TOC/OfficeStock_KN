@@ -986,38 +986,9 @@ async function addItem(){
   if(!name){alert('กรุณากรอกชื่อสินค้า');return;}
   const it={id:'IT'+String(ni++).padStart(3,'0'),name,cat,lid,qty,unit,min,price,note};
   items.push(it);
-  if (sbUrl && sbKey) {
-    try {
-      // sync location ก่อนถ้ายังไม่มี
-      if (it.lid) {
-        const loc = locs.find(l => l.id === it.lid);
-        if (loc) {
-          await sbReq('locations', {
-            method: 'POST',
-            headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
-            body: JSON.stringify({
-              id: loc.id, code: loc.code, name: loc.name,
-              icon: loc.icon, floor: loc.floor, description: loc.desc
-            })
-          });
-        }
-      }
-      // แล้วค่อย insert item
-      await sbReq('items', {
-        method: 'POST',
-        headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
-        body: JSON.stringify({
-          id: it.id, name, category: cat,
-          location_id: lid || null, qty, unit,
-          min_qty: min, price, note
-        })
-      });
-      sa('g-alert', 'ok', `✓ บันทึก "${name}" ลง Supabase สำเร็จ`);
-    } catch (e) {
-      sa('g-alert', 'err', `✕ Supabase Error: ${e.message}`);
-      console.error('addItem error:', e);
-    }
-  }
+  if(sbUrl&&sbKey)await sbReq('items',{method:'POST',body:JSON.stringify({id:it.id,name,category:cat,location_id:lid||null,qty,unit,min_qty:min,price,note})});
+  closeM('m-item');renderInv();renderDash();popCatLoc();
+}
 async function delItem(id){
   if(!confirm('ยืนยันการลบสินค้า?'))return;
   items=items.filter(i=>i.id!==id);
