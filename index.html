@@ -1302,11 +1302,39 @@ function renderSql(){
 }
 
 /* INIT */
+async function syncAllUp() {
+  if (!sbUrl || !sbKey) return;
+  for (const loc of locs) {
+    await sbReq('locations', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
+      body: JSON.stringify({
+        id: loc.id, code: loc.code, name: loc.name,
+        icon: loc.icon, floor: loc.floor, description: loc.desc
+      })
+    });
+  }
+  for (const it of items) {
+    await sbReq('items', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
+      body: JSON.stringify({
+        id: it.id, name: it.name, category: it.cat,
+        location_id: it.lid || null, qty: it.qty,
+        unit: it.unit, min_qty: it.min, price: it.price, note: it.note
+      })
+    });
+  }
+}
+
 renderSql();
-document.getElementById('sb-url').value=sbUrl;
-document.getElementById('sb-key').value=sbKey;
-popCatLoc();popItemSel();renderDash();renderInv();renderLocs();renderPO();updBadge();
-if(sbUrl&&sbKey){setConn('ok','กำลัง Sync...');syncAll();}
+document.getElementById('sb-url').value = sbUrl;
+document.getElementById('sb-key').value = sbKey;
+popCatLoc(); popItemSel(); renderDash(); renderInv(); renderLocs(); renderPO(); updBadge();
+if (sbUrl && sbKey) {
+  setConn('ok', 'กำลัง Sync...');
+  syncAllUp().then(() => syncAll());
+}
 </script>
 </body>
 </html>
