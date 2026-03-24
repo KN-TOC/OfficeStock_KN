@@ -1092,39 +1092,108 @@ function popItemSel(){
     if(el)el.innerHTML=items.map(i=>`<option value="${i.id}">${i.name} — ${getLoc(i.lid)} (คงเหลือ: ${i.qty} ${i.unit})</option>`).join('');
   });
 }
-async function doReceive(){
-  const id=document.getElementById('recv-item').value;
-  const qty=parseInt(document.getElementById('recv-qty').value);
-  const by=document.getElementById('recv-by').value.trim()||'ไม่ระบุ';
-  const ref=document.getElementById('recv-ref').value.trim();
-  const note=document.getElementById('recv-note').value.trim();
-  if(!qty||qty<1){sa('recv-alert','warn','กรุณากรอกจำนวน');return;}
-  const it=items.find(i=>i.id===id);
-  it.qty+=qty;
-  if(sbUrl&&sbKey)await sbReq(`items?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({qty:it.qty})});
-  const t={id:'T'+String(nt++).padStart(3,'0'),date:now(),type:'รับสินค้า',iid:id,iname:it.name,lid:it.lid,qty,by,ref,note};
-  txns.push(t);
-  if(sbUrl&&sbKey)await sbReq('transactions',{method:'POST',body:JSON.stringify({id:t.id,date:t.date,type:'รับสินค้า',item_id:id,item_name:it.name,location_id:it.lid||null,qty,by_person:by,ref,note})});
-  sa('recv-alert','ok',`✓ รับ "${it.name}" ${qty} ${it.unit} ที่ ${getLoc(it.lid)} (คงเหลือ: ${it.qty})`);
-  document.getElementById('recv-qty').value=1;document.getElementById('recv-ref').value='';document.getElementById('recv-note').value='';
-  popItemSel();updBadge();
+async function doReceive() {
+  const id = document.getElementById('recv-item').value;
+  const qty = parseInt(document.getElementById('recv-qty').value);
+  const by = document.getElementById('recv-by').value.trim() || 'ไม่ระบุ';
+  const ref = document.getElementById('recv-ref').value.trim();
+  const note = document.getElementById('recv-note').value.trim();
+  if (!qty || qty < 1) { sa('recv-alert', 'warn', 'กรุณากรอกจำนวน'); return; }
+  const it = items.find(i => i.id === id);
+  it.qty += qty;
+
+  if (sbUrl && sbKey) {
+    try {
+      // sync item ขึ้น Supabase ก่อนถ้ายังไม่มี
+      await sbReq('items', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
+        body: JSON.stringify({
+          id: it.id, name: it.name, category: it.cat,
+          location_id: it.lid || null, qty: it.qty,
+          unit: it.unit, min_qty: it.min, price: it.price, note: it.note
+        })
+      });
+    } catch(e) { /* มีอยู่แล้วก็ข้ามไป */ }
+
+    try {
+      await sbReq(`items?id=eq.${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ qty: it.qty })
+      });
+      const t = { id: 'T' + String(nt++).padStart(3, '0'), date: now(), type: 'รับสินค้า', iid: id, iname: it.name, lid: it.lid, qty, by, ref, note };
+      txns.push(t);
+      await sbReq('transactions', {
+        method: 'POST',
+        body: JSON.stringify({ id: t.id, date: t.date, type: 'รับสินค้า', item_id: id, item_name: it.name, location_id: it.lid || null, qty, by_person: by, ref, note })
+      });
+      sa('recv-alert', 'ok', `✓ รับ "${it.name}" ${qty} ${it.unit} (คงเหลือ: ${it.qty})`);
+    } catch(e) {
+      sa('recv-alert', 'err', `✕ Error: ${e.message}`);
+      return;
+    }
+  } else {
+    const t = { id: 'T' + String(nt++).padStart(3, '0'), date: now(), type: 'รับสินค้า', iid: id, iname: it.name, lid: it.lid, qty, by, ref, note };
+    txns.push(t);
+    sa('recv-alert', 'ok', `✓ รับ "${it.name}" ${qty} ${it.unit} (คงเหลือ: ${it.qty})`);
+  }
+
+  document.getElementById('recv-qty').value = 1;
+  document.getElementById('recv-ref').value = '';
+  document.getElementById('recv-note').value = '';
+  popItemSel(); updBadge();
 }
-async function doIssue(){
-  const id=document.getElementById('issue-item').value;
-  const qty=parseInt(document.getElementById('issue-qty').value);
-  const by=document.getElementById('issue-by').value.trim()||'ไม่ระบุ';
-  const pur=document.getElementById('issue-pur').value.trim();
-  const note=document.getElementById('issue-note').value.trim();
-  const it=items.find(i=>i.id===id);
-  if(!qty||qty<1){sa('issue-alert','warn','กรุณากรอกจำนวน');return;}
-  if(qty>it.qty){sa('issue-alert','err',`✕ สินค้าไม่พอ! คงเหลือเพียง ${it.qty} ${it.unit}`);return;}
-  it.qty-=qty;
-  if(sbUrl&&sbKey)await sbReq(`items?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({qty:it.qty})});
-  const t={id:'T'+String(nt++).padStart(3,'0'),date:now(),type:'เบิกสินค้า',iid:id,iname:it.name,lid:it.lid,qty,by,ref:pur,note};
-  txns.push(t);
-  if(sbUrl&&sbKey)await sbReq('transactions',{method:'POST',body:JSON.stringify({id:t.id,date:t.date,type:'เบิกสินค้า',item_id:id,item_name:it.name,location_id:it.lid||null,qty,by_person:by,ref:pur,note})});
-  sa('issue-alert','ok',`✓ เบิก "${it.name}" ${qty} ${it.unit} จาก ${getLoc(it.lid)} (คงเหลือ: ${it.qty})`);
-  document.getElementById('issue-qty').value=1;document.getElementById('issue-pur').value='';document.getElementById('issue-note').value='';
+async function doIssue() {
+  const id = document.getElementById('issue-item').value;
+  const qty = parseInt(document.getElementById('issue-qty').value);
+  const by = document.getElementById('issue-by').value.trim() || 'ไม่ระบุ';
+  const pur = document.getElementById('issue-pur').value.trim();
+  const note = document.getElementById('issue-note').value.trim();
+  const it = items.find(i => i.id === id);
+  if (!qty || qty < 1) { sa('issue-alert', 'warn', 'กรุณากรอกจำนวน'); return; }
+  if (qty > it.qty) { sa('issue-alert', 'err', `✕ สินค้าไม่พอ! คงเหลือเพียง ${it.qty} ${it.unit}`); return; }
+  it.qty -= qty;
+
+  if (sbUrl && sbKey) {
+    try {
+      // sync item ขึ้น Supabase ก่อนถ้ายังไม่มี
+      await sbReq('items', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
+        body: JSON.stringify({
+          id: it.id, name: it.name, category: it.cat,
+          location_id: it.lid || null, qty: it.qty,
+          unit: it.unit, min_qty: it.min, price: it.price, note: it.note
+        })
+      });
+    } catch(e) { /* มีอยู่แล้วก็ข้ามไป */ }
+
+    try {
+      await sbReq(`items?id=eq.${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ qty: it.qty })
+      });
+      const t = { id: 'T' + String(nt++).padStart(3, '0'), date: now(), type: 'เบิกสินค้า', iid: id, iname: it.name, lid: it.lid, qty, by, ref: pur, note };
+      txns.push(t);
+      await sbReq('transactions', {
+        method: 'POST',
+        body: JSON.stringify({ id: t.id, date: t.date, type: 'เบิกสินค้า', item_id: id, item_name: it.name, location_id: it.lid || null, qty, by_person: by, ref: pur, note })
+      });
+      sa('issue-alert', 'ok', `✓ เบิก "${it.name}" ${qty} ${it.unit} จาก ${getLoc(it.lid)} (คงเหลือ: ${it.qty})`);
+    } catch(e) {
+      sa('issue-alert', 'err', `✕ Error: ${e.message}`);
+      it.qty += qty; // rollback qty กลับถ้า error
+      return;
+    }
+  } else {
+    const t = { id: 'T' + String(nt++).padStart(3, '0'), date: now(), type: 'เบิกสินค้า', iid: id, iname: it.name, lid: it.lid, qty, by, ref: pur, note };
+    txns.push(t);
+    sa('issue-alert', 'ok', `✓ เบิก "${it.name}" ${qty} ${it.unit} จาก ${getLoc(it.lid)} (คงเหลือ: ${it.qty})`);
+  }
+
+  document.getElementById('issue-qty').value = 1;
+  document.getElementById('issue-pur').value = '';
+  document.getElementById('issue-note').value = '';
   popItemSel();
 }
 
