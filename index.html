@@ -982,7 +982,7 @@ function renderInv(q=''){
 function filterInv(q){renderInv(q);}
 async function addItem(){
   const btn = event.currentTarget;
-  if(btn.disabled) return;          // ✅ กันกด 2 ครั้ง
+  if(btn.disabled) return;
   btn.disabled = true;
   btn.textContent = '⏳ กำลังบันทึก...';
 
@@ -1001,9 +1001,29 @@ async function addItem(){
     return;
   }
 
-  // ✅ ID unique แบบ timestamp + random กันชนทุกกรณี
   const newId = 'IT' + Date.now() + Math.floor(Math.random()*1000);
   const locationId = lid || null;
+
+  // ✅ ถ้าเลือก Location — upsert ขึ้น Supabase ก่อนเลย
+  if(sbUrl && sbKey && locationId){
+    const loc = locs.find(l => l.id === locationId);
+    if(loc){
+      try{
+        await sbReq('locations', {
+          method: 'POST',
+          headers: { Prefer: 'resolution=ignore-duplicates' },
+          body: JSON.stringify({
+            id: loc.id,
+            code: loc.code,
+            name: loc.name,
+            icon: loc.icon,
+            floor: loc.floor,
+            description: loc.desc
+          })
+        });
+      }catch(_){/* มีอยู่แล้วก็ข้ามได้ */}
+    }
+  }
 
   const it={id:newId,name,cat,lid:lid||'',qty,unit,min,price,note};
   items.push(it);
