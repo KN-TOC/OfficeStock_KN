@@ -714,16 +714,13 @@ let items=[
   {id:'IT001',name:'กระดาษ A4 80g',cat:'กระดาษ',lid:'L002',qty:45,unit:'รีม',min:10,price:120,note:''},
   {id:'IT002',name:'ปากกาลูกลื่น (ดำ)',cat:'เครื่องเขียน',lid:'L001',qty:6,unit:'แพ็ค',min:5,price:35,note:''},
   {id:'IT003',name:'แฟ้มเจาะ',cat:'เครื่องเขียน',lid:'L001',qty:2,unit:'อัน',min:8,price:25,note:''},
-  {id:'IT004',name:'หมึกพิมพ์ HP',cat:'อุปกรณ์ IT',lid:'L003',qty:3,unit:'ตลับ',min:2,price:850,note:''},
-  {id:'IT005',name:'กระดาษโน้ต Sticky',cat:'เครื่องเขียน',lid:'L001',qty:20,unit:'แผ่น',min:5,price:15,note:''},
-  {id:'IT006',name:'คลิปหนีบกระดาษ',cat:'เครื่องเขียน',lid:'L001',qty:0,unit:'กล่อง',min:3,price:20,note:''},
+
 ];
 let txns=[
   {id:'T001',date:'2026-03-20 09:15',type:'รับสินค้า',iid:'IT001',iname:'กระดาษ A4 80g',lid:'L002',qty:20,by:'คุณสมชาย',ref:'DO-001',note:''},
   {id:'T002',date:'2026-03-21 10:30',type:'เบิกสินค้า',iid:'IT002',iname:'ปากกาลูกลื่น (ดำ)',lid:'L001',qty:2,by:'แผนกบัญชี',ref:'',note:'ใช้งานประจำ'},
   {id:'T003',date:'2026-03-22 14:00',type:'รับสินค้า',iid:'IT004',iname:'หมึกพิมพ์ HP',lid:'L003',qty:5,by:'คุณมาลี',ref:'DO-002',note:''},
-  {id:'T004',date:'2026-03-23 09:00',type:'เบิกสินค้า',iid:'IT003',iname:'แฟ้มเจาะ',lid:'L001',qty:10,by:'แผนก HR',ref:'',note:'แจกพนักงานใหม่'},
-  {id:'T005',date:'2026-03-24 11:20',type:'เบิกสินค้า',iid:'IT001',iname:'กระดาษ A4 80g',lid:'L002',qty:5,by:'ฝ่ายการตลาด',ref:'',note:''},
+
 ];
 let poList=[
   {id:'PO-2026-001',date:'2026-03-18',req:'คุณสมชาย',sup:'บริษัท ABC จำกัด',need:'2026-03-25',note:'',status:'อนุมัติแล้ว',rows:[{name:'กระดาษ A4 80g',qty:50,unit:'รีม',price:120},{name:'ปากกาลูกลื่น (ดำ)',qty:10,unit:'แพ็ค',price:35}]},
@@ -998,25 +995,30 @@ async function addItem(){
   btn.disabled = true;
   btn.textContent = '⏳ กำลังบันทึก...';
 
-  const name=document.getElementById('ai-name').value.trim();
-  const cat=document.getElementById('ai-cat').value;
-  const lid=document.getElementById('ai-loc').value;
-  const qty=parseInt(document.getElementById('ai-qty').value)||0;
-  const unit=document.getElementById('ai-unit').value.trim()||'อัน';
-  const price=parseFloat(document.getElementById('ai-price').value)||0;
-  const min=parseInt(document.getElementById('ai-min').value)||5;
-  const note=document.getElementById('ai-note').value.trim();
+  const customId = document.getElementById('ai-id').value.trim().toUpperCase();
+  const name = document.getElementById('ai-name').value.trim();
+  const cat = document.getElementById('ai-cat').value;
+  const lid = document.getElementById('ai-loc').value;
+  const qty = parseInt(document.getElementById('ai-qty').value)||0;
+  const unit = document.getElementById('ai-unit').value.trim()||'อัน';
+  const price = parseFloat(document.getElementById('ai-price').value)||0;
+  const min = parseInt(document.getElementById('ai-min').value)||5;
+  const note = document.getElementById('ai-note').value.trim();
 
-  if(!name){
-    alert('กรุณากรอกชื่อสินค้า');
+  // ✅ Validate รหัส + ชื่อ
+  if(!customId){ alert('กรุณากรอกรหัสสินค้า'); btn.disabled=false; btn.textContent='✓ บันทึก'; return; }
+  if(!name){ alert('กรุณากรอกชื่อสินค้า'); btn.disabled=false; btn.textContent='✓ บันทึก'; return; }
+
+  // ✅ ตรวจสอบ ID ซ้ำใน local
+  if(items.find(i => i.id === customId)){
+    alert(`รหัส "${customId}" มีอยู่แล้ว กรุณาใช้รหัสอื่น`);
     btn.disabled=false; btn.textContent='✓ บันทึก';
     return;
   }
 
-  const newId = 'IT' + Date.now() + Math.floor(Math.random()*1000);
   const locationId = lid || null;
 
-  // ✅ ถ้าเลือก Location — upsert ขึ้น Supabase ก่อนเลย
+  // ✅ upsert Location ก่อน ป้องกัน FK error
   if(sbUrl && sbKey && locationId){
     const loc = locs.find(l => l.id === locationId);
     if(loc){
@@ -1024,42 +1026,49 @@ async function addItem(){
         await sbReq('locations', {
           method: 'POST',
           headers: { Prefer: 'resolution=ignore-duplicates' },
-          body: JSON.stringify({
-            id: loc.id,
-            code: loc.code,
-            name: loc.name,
-            icon: loc.icon,
-            floor: loc.floor,
-            description: loc.desc
-          })
+          body: JSON.stringify({ id:loc.id, code:loc.code, name:loc.name, icon:loc.icon, floor:loc.floor, description:loc.desc })
         });
-      }catch(_){/* มีอยู่แล้วก็ข้ามได้ */}
+      }catch(_){}
     }
   }
 
-  const it={id:newId,name,cat,lid:lid||'',qty,unit,min,price,note};
+  const it = { id:customId, name, cat, lid:lid||'', qty, unit, min, price, note };
   items.push(it);
 
-  if(sbUrl&&sbKey){
+  if(sbUrl && sbKey){
     try{
-      await sbReq('items',{method:'POST',body:JSON.stringify({
-        id:newId,name,category:cat,
+      await sbReq('items', { method:'POST', body:JSON.stringify({
+        id:customId, name, category:cat,
         location_id:locationId,
-        qty,unit,min_qty:min,price,note
+        qty, unit, min_qty:min, price, note
       })});
     }catch(e){
       items.pop();
-      let msg=e.message;
-      try{msg=JSON.parse(e.message)?.message||msg;}catch(_){}
+      let msg = e.message;
+      try{ const parsed = JSON.parse(msg); msg = parsed.message||msg; }catch(_){}
+      // ✅ แจ้งชัดเจนถ้า ID ซ้ำใน DB
+      if(msg.includes('duplicate') || msg.includes('unique')){
+        msg = `รหัส "${customId}" มีอยู่ใน Database แล้ว กรุณาใช้รหัสอื่น`;
+      }
       sa('g-alert','err','บันทึกไม่สำเร็จ: '+msg);
       btn.disabled=false; btn.textContent='✓ บันทึก';
       return;
     }
   }
 
+  // ✅ เคลียร์ฟอร์มหลังบันทึกสำเร็จ
+  document.getElementById('ai-id').value='';
+  document.getElementById('ai-name').value='';
+  document.getElementById('ai-qty').value=0;
+  document.getElementById('ai-unit').value='';
+  document.getElementById('ai-price').value=0;
+  document.getElementById('ai-min').value=5;
+  document.getElementById('ai-note').value='';
+
   btn.disabled=false; btn.textContent='✓ บันทึก';
-  closeM('m-item');renderInv();renderDash();popCatLoc();
+  closeM('m-item'); renderInv(); renderDash(); popCatLoc();
 }
+  
 async function delItem(id){
   if(!confirm('ยืนยันการลบสินค้า?'))return;
   items=items.filter(i=>i.id!==id);
