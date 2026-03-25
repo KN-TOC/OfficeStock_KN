@@ -833,14 +833,26 @@ CREATE TRIGGER trg_po BEFORE UPDATE ON
   EXECUTE FUNCTION _upd_at();`;
 
 /* SUPABASE */
-async function sbReq(path,opts={}){
-  if(!sbUrl||!sbKey)return null;
-  const r=await fetch(`${sbUrl}/rest/v1/${path}`,{
-    headers:{apikey:sbKey,Authorization:`Bearer ${sbKey}`,'Content-Type':'application/json',Prefer:'return=representation',...(opts.headers||{})},
-    ...opts
+async function sbReq(path, opts={}) {
+  if(!sbUrl || !sbKey) return null;
+
+  // ✅ แยก headers ออกจาก opts ก่อน ป้องกัน ...opts ทับ auth headers
+  const { headers: extraHeaders={}, ...restOpts } = opts;
+
+  const r = await fetch(`${sbUrl}/rest/v1/${path}`, {
+    headers: {
+      apikey: sbKey,
+      Authorization: `Bearer ${sbKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+      ...extraHeaders   // merge แทน overwrite
+    },
+    ...restOpts         // spread เฉพาะ method, body ฯลฯ
   });
-  if(!r.ok)throw new Error(await r.text());
-  const t=await r.text();return t?JSON.parse(t):null;
+
+  if(!r.ok) throw new Error(await r.text());
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
 }
 async function syncAll(){
   if(!sbUrl||!sbKey)return;
