@@ -981,6 +981,11 @@ function renderInv(q=''){
 }
 function filterInv(q){renderInv(q);}
 async function addItem(){
+  const btn = event.currentTarget;
+  if(btn.disabled) return;          // ✅ กันกด 2 ครั้ง
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังบันทึก...';
+
   const name=document.getElementById('ai-name').value.trim();
   const cat=document.getElementById('ai-cat').value;
   const lid=document.getElementById('ai-loc').value;
@@ -989,10 +994,15 @@ async function addItem(){
   const price=parseFloat(document.getElementById('ai-price').value)||0;
   const min=parseInt(document.getElementById('ai-min').value)||5;
   const note=document.getElementById('ai-note').value.trim();
-  if(!name){alert('กรุณากรอกชื่อสินค้า');return;}
 
-  // ✅ ID unique 100% — ไม่มีทางชนกัน
-  const newId = 'IT' + Date.now();
+  if(!name){
+    alert('กรุณากรอกชื่อสินค้า');
+    btn.disabled=false; btn.textContent='✓ บันทึก';
+    return;
+  }
+
+  // ✅ ID unique แบบ timestamp + random กันชนทุกกรณี
+  const newId = 'IT' + Date.now() + Math.floor(Math.random()*1000);
   const locationId = lid || null;
 
   const it={id:newId,name,cat,lid:lid||'',qty,unit,min,price,note};
@@ -1010,10 +1020,12 @@ async function addItem(){
       let msg=e.message;
       try{msg=JSON.parse(e.message)?.message||msg;}catch(_){}
       sa('g-alert','err','บันทึกไม่สำเร็จ: '+msg);
+      btn.disabled=false; btn.textContent='✓ บันทึก';
       return;
     }
   }
 
+  btn.disabled=false; btn.textContent='✓ บันทึก';
   closeM('m-item');renderInv();renderDash();popCatLoc();
 }
 async function delItem(id){
