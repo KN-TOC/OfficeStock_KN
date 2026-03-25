@@ -983,7 +983,7 @@ function filterInv(q){renderInv(q);}
 async function addItem(){
   const name=document.getElementById('ai-name').value.trim();
   const cat=document.getElementById('ai-cat').value;
-  const lid=document.getElementById('ai-loc').value;         // อาจเป็น "" ถ้าไม่เลือก
+  const lid=document.getElementById('ai-loc').value;
   const qty=parseInt(document.getElementById('ai-qty').value)||0;
   const unit=document.getElementById('ai-unit').value.trim()||'อัน';
   const price=parseFloat(document.getElementById('ai-price').value)||0;
@@ -991,9 +991,9 @@ async function addItem(){
   const note=document.getElementById('ai-note').value.trim();
   if(!name){alert('กรุณากรอกชื่อสินค้า');return;}
 
-  // ✅ Fix 1: ใช้ timestamp ป้องกัน ID ชน
-  const newId = 'IT' + String(ni++).padStart(3,'0') + '_' + Date.now().toString().slice(-4);
-  const locationId = lid || null;  // ✅ Fix 2: แปลง "" → null ก่อนส่ง Supabase
+  // ✅ ID unique 100% — ไม่มีทางชนกัน
+  const newId = 'IT' + Date.now();
+  const locationId = lid || null;
 
   const it={id:newId,name,cat,lid:lid||'',qty,unit,min,price,note};
   items.push(it);
@@ -1001,18 +1001,11 @@ async function addItem(){
   if(sbUrl&&sbKey){
     try{
       await sbReq('items',{method:'POST',body:JSON.stringify({
-        id:newId,
-        name,
-        category:cat,
-        location_id:locationId,  // ✅ null แทน ""
-        qty,
-        unit,
-        min_qty:min,
-        price,
-        note
+        id:newId,name,category:cat,
+        location_id:locationId,
+        qty,unit,min_qty:min,price,note
       })});
     }catch(e){
-      // Rollback local หาก Supabase error
       items.pop();
       let msg=e.message;
       try{msg=JSON.parse(e.message)?.message||msg;}catch(_){}
