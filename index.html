@@ -342,7 +342,55 @@ textarea{resize:vertical;min-height:68px}
 /* GUARD */
 .guard-badge{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.18);color:var(--red);padding:10px 14px;border-radius:var(--r10);font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:16px;}
 
-/* LIGHT MODE */
+/* IMPORT MODAL */
+.drop-zone{
+  border:2px dashed var(--bhi);border-radius:var(--r14);padding:36px 20px;
+  text-align:center;cursor:pointer;transition:all .18s var(--ease);
+  background:var(--n850);position:relative;
+}
+.drop-zone:hover,.drop-zone.drag-over{
+  border-color:var(--cyan);background:rgba(56,189,248,.05);
+}
+.drop-zone input[type=file]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+}
+.dz-ico{font-size:36px;margin-bottom:10px;display:block;opacity:.7;}
+.dz-title{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:4px;}
+.dz-sub{font-size:12px;color:var(--t3);}
+.imp-preview{margin-top:16px;}
+.imp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.imp-stat{background:var(--n850);border:1px solid var(--bd);border-radius:var(--r10);padding:10px 12px;text-align:center;}
+.imp-stat-val{font-size:20px;font-weight:700;}
+.imp-stat-lbl{font-size:10px;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-top:2px;}
+.sv-new{color:var(--green)}.sv-upd{color:var(--cyan)}.sv-skip{color:var(--amber)}.sv-err{color:var(--red)}
+.imp-tbl-wrap{max-height:280px;overflow-y:auto;border-radius:var(--r10);border:1px solid var(--bd);}
+.imp-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.imp-tbl th{background:var(--n850);padding:7px 10px;border-bottom:1px solid var(--bd);color:var(--t3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;position:sticky;top:0;z-index:1;}
+.imp-tbl td{padding:7px 10px;border-bottom:1px solid var(--bd);vertical-align:middle;}
+.imp-tbl tr:last-child td{border-bottom:none;}
+.imp-tbl tr.r-new td{background:rgba(74,222,128,.04);}
+.imp-tbl tr.r-upd td{background:rgba(56,189,248,.04);}
+.imp-tbl tr.r-err td{background:rgba(248,113,113,.04);}
+.imp-row-badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:700;}
+.rb-new{background:rgba(74,222,128,.14);color:var(--green);}
+.rb-upd{background:rgba(56,189,248,.14);color:var(--cyan);}
+.rb-skip{background:rgba(251,191,36,.14);color:var(--amber);}
+.rb-err{background:rgba(248,113,113,.14);color:var(--red);}
+.imp-map{background:var(--n850);border:1px solid var(--bd);border-radius:var(--r10);padding:14px;margin-bottom:14px;}
+.imp-map-title{font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.7px;text-transform:uppercase;margin-bottom:10px;}
+.imp-map-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:6px 10px;align-items:center;font-size:12px;}
+.imp-map-col{color:var(--cyan);font-family:var(--mono);font-size:11px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.18);padding:3px 8px;border-radius:var(--r6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.imp-map-arrow{color:var(--tdim);font-size:11px;text-align:center;}
+.imp-map-field{color:var(--t2);font-size:12px;}
+.imp-tmpl{background:rgba(232,184,75,.05);border:1px solid rgba(232,184,75,.18);border-radius:var(--r10);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.imp-tmpl-info{font-size:12px;color:var(--t3);}
+.imp-tmpl-info b{color:var(--gold);}
+.imp-mode-row{display:flex;gap:8px;margin-bottom:14px;}
+.imp-mode-btn{flex:1;padding:9px 12px;border-radius:var(--r10);border:2px solid var(--bd);background:transparent;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--t2);text-align:center;transition:all .14s;}
+.imp-mode-btn.sel{border-color:var(--cyan);background:rgba(56,189,248,.08);color:var(--cyan);}
+.imp-mode-btn:hover:not(.sel){border-color:var(--bhi);background:var(--n850);}
+.imp-mode-icon{font-size:16px;display:block;margin-bottom:3px;}
+
 .light-mode .sb-item:hover{background:var(--n700)}
 .light-mode .card{box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .light-mode input,.light-mode select,.light-mode textarea{background:white;border-color:var(--bd);color:var(--t1)}
@@ -548,7 +596,10 @@ textarea{resize:vertical;min-height:68px}
           <select class="fsel" id="f-cat" onchange="filterInv()"><option value="">ทุกหมวดหมู่</option></select>
           <select class="fsel" id="f-loc" onchange="filterInv()"><option value="">ทุก Location</option></select>
         </div>
-        <button class="btn btn-gold" onclick="openAddItem()">＋ เพิ่มสินค้า</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="openImport()">⇪ Import Excel/CSV</button>
+          <button class="btn btn-gold" onclick="openAddItem()">＋ เพิ่มสินค้า</button>
+        </div>
       </div>
       <div class="card">
         <div class="tw"><table>
@@ -837,6 +888,98 @@ textarea{resize:vertical;min-height:68px}
     <div class="mf">
       <button class="btn btn-ghost" onclick="closeM('m-user')">ยกเลิก</button>
       <button class="btn btn-gold" id="m-user-save-btn" onclick="saveUser()">✓ บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="mbg" id="m-import">
+  <div class="modal modal-w">
+    <div class="mh">
+      <span class="mt">⇪ Import สินค้า — Excel / CSV</span>
+      <button class="mc" onclick="closeImport()">✕</button>
+    </div>
+    <div class="mb">
+      <div id="imp-alert"></div>
+
+      <!-- Step 1: Upload zone (shown by default) -->
+      <div id="imp-step1">
+        <!-- Template download -->
+        <div class="imp-tmpl">
+          <div class="imp-tmpl-info">
+            📄 ดาวน์โหลด <b>Template Excel</b> สำหรับกรอกข้อมูล (รองรับทั้ง .xlsx และ .csv)
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()">⇩ Template</button>
+        </div>
+
+        <!-- Drag & drop zone -->
+        <div class="drop-zone" id="drop-zone"
+          ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)">
+          <input type="file" id="imp-file" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this)">
+          <span class="dz-ico">📂</span>
+          <div class="dz-title">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
+          <div class="dz-sub">รองรับ .xlsx, .xls, .csv — ขนาดไม่เกิน 5MB</div>
+        </div>
+
+        <!-- Column mapping info -->
+        <div class="imp-map mt14">
+          <div class="imp-map-title">📋 คอลัมน์ที่รองรับ (ใช้ชื่อคอลัมน์ตามนี้ในไฟล์)</div>
+          <div class="imp-map-grid">
+            <div class="imp-map-col">id / รหัส / รหัสสินค้า</div><div class="imp-map-arrow">→</div><div class="imp-map-field">รหัสสินค้า <span style="color:var(--red)">*</span></div>
+            <div class="imp-map-col">name / ชื่อ / ชื่อสินค้า</div><div class="imp-map-arrow">→</div><div class="imp-map-field">ชื่อสินค้า <span style="color:var(--red)">*</span></div>
+            <div class="imp-map-col">category / หมวดหมู่ / cat</div><div class="imp-map-arrow">→</div><div class="imp-map-field">หมวดหมู่</div>
+            <div class="imp-map-col">qty / จำนวน / คงเหลือ</div><div class="imp-map-arrow">→</div><div class="imp-map-field">จำนวนคงเหลือ</div>
+            <div class="imp-map-col">unit / หน่วย</div><div class="imp-map-arrow">→</div><div class="imp-map-field">หน่วย</div>
+            <div class="imp-map-col">price / ราคา / ราคา/หน่วย</div><div class="imp-map-arrow">→</div><div class="imp-map-field">ราคา/หน่วย</div>
+            <div class="imp-map-col">min / ขั้นต่ำ / min_qty</div><div class="imp-map-arrow">→</div><div class="imp-map-field">จำนวนขั้นต่ำ</div>
+            <div class="imp-map-col">location / location_id / loc</div><div class="imp-map-arrow">→</div><div class="imp-map-field">รหัส Location</div>
+            <div class="imp-map-col">note / หมายเหตุ</div><div class="imp-map-arrow">→</div><div class="imp-map-field">หมายเหตุ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Preview (hidden until file loaded) -->
+      <div id="imp-step2" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:var(--t1)" id="imp-filename"></div>
+          <button class="btn btn-ghost btn-xs" onclick="resetImport()">✕ เปลี่ยนไฟล์</button>
+        </div>
+
+        <!-- Import mode -->
+        <div class="imp-mode-row">
+          <button class="imp-mode-btn sel" id="imode-add" onclick="setIMode('add')">
+            <span class="imp-mode-icon">➕</span>
+            เพิ่มเฉพาะสินค้าใหม่
+            <div style="font-size:10px;font-weight:400;color:var(--tdim);margin-top:2px">ข้ามถ้ารหัสซ้ำ</div>
+          </button>
+          <button class="imp-mode-btn" id="imode-upsert" onclick="setIMode('upsert')">
+            <span class="imp-mode-icon">🔄</span>
+            เพิ่ม + อัปเดต
+            <div style="font-size:10px;font-weight:400;color:var(--tdim);margin-top:2px">อัปเดตถ้ารหัสซ้ำ</div>
+          </button>
+          <button class="imp-mode-btn" id="imode-replace" onclick="setIMode('replace')">
+            <span class="imp-mode-icon">♻️</span>
+            แทนที่ทั้งหมด
+            <div style="font-size:10px;font-weight:400;color:var(--tdim);margin-top:2px">ล้างข้อมูลเดิมก่อน</div>
+          </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="imp-stats" id="imp-stats"></div>
+
+        <!-- Preview table -->
+        <div class="imp-tbl-wrap">
+          <table class="imp-tbl">
+            <thead><tr><th>#</th><th>สถานะ</th><th>รหัส</th><th>ชื่อสินค้า</th><th>หมวดหมู่</th><th>จำนวน</th><th>หน่วย</th><th>ราคา</th><th>ขั้นต่ำ</th><th>Location</th></tr></thead>
+            <tbody id="imp-preview-tb"></tbody>
+          </table>
+        </div>
+        <div style="font-size:11px;color:var(--tdim);margin-top:8px" id="imp-row-count"></div>
+      </div>
+    </div>
+    <div class="mf" id="imp-footer">
+      <button class="btn btn-ghost" onclick="closeImport()">ยกเลิก</button>
+      <button class="btn btn-gold" id="imp-confirm-btn" style="display:none" onclick="confirmImport()">✓ นำเข้าข้อมูล</button>
     </div>
   </div>
 </div>
@@ -1923,7 +2066,289 @@ async function submitPO(){
   setTimeout(()=>{poTab('po-l',document.querySelectorAll('.itab')[0]);renderPO();renderDash();},1500);
 }
 
-/* ══ EXPORT EXCEL ══ */
+/* ══ IMPORT EXCEL / CSV ══ */
+let impMode='add'; // 'add' | 'upsert' | 'replace'
+let impRows=[];    // parsed & analyzed rows ready for preview
+
+function openImport(){
+  resetImport();
+  document.getElementById('imp-alert').innerHTML='';
+  openM('m-import');
+}
+function closeImport(){closeM('m-import');}
+
+function resetImport(){
+  impRows=[];impMode='add';
+  document.getElementById('imp-step1').style.display='';
+  document.getElementById('imp-step2').style.display='none';
+  document.getElementById('imp-confirm-btn').style.display='none';
+  document.getElementById('imp-file').value='';
+  document.getElementById('imp-alert').innerHTML='';
+  setIMode('add');
+}
+
+function setIMode(m){
+  impMode=m;
+  ['add','upsert','replace'].forEach(k=>{
+    document.getElementById(`imode-${k}`).classList.toggle('sel',k===m);
+  });
+  if(impRows.length)buildPreview();
+}
+
+/* Drag & Drop */
+function dzOver(e){e.preventDefault();document.getElementById('drop-zone').classList.add('drag-over');}
+function dzLeave(e){document.getElementById('drop-zone').classList.remove('drag-over');}
+function dzDrop(e){
+  e.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');
+  const f=e.dataTransfer.files[0];if(f)processFile(f);
+}
+function handleFileSelect(input){
+  const f=input.files[0];if(f)processFile(f);
+}
+
+/* ── Parse file → impRows ── */
+function processFile(file){
+  if(file.size>5*1024*1024){sa('imp-alert','err','ไฟล์ใหญ่เกิน 5MB');return;}
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['xlsx','xls','csv'].includes(ext)){sa('imp-alert','err','รองรับเฉพาะ .xlsx, .xls, .csv');return;}
+  document.getElementById('imp-filename').textContent='📄 '+file.name;
+
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      let data;
+      if(ext==='csv'){
+        // Parse CSV manually for better Thai support
+        const text=e.target.result;
+        data=csvToAoa(text);
+      } else {
+        const ab=e.target.result;
+        const wb=XLSX.read(ab,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      }
+      parseImportData(data,file.name);
+    }catch(err){sa('imp-alert','err','อ่านไฟล์ไม่ได้: '+err.message);}
+  };
+  if(ext==='csv') reader.readAsText(file,'UTF-8');
+  else reader.readAsArrayBuffer(file);
+}
+
+function csvToAoa(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  return lines.map(line=>{
+    const cols=[];let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){inQ=!inQ;}
+      else if(c===','&&!inQ){cols.push(cur.trim());cur='';}
+      else{cur+=c;}
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+}
+
+/* ── Column name mapping ── */
+const COL_MAP={
+  id:       ['id','รหัส','รหัสสินค้า','code','sku'],
+  name:     ['name','ชื่อ','ชื่อสินค้า','item','สินค้า'],
+  cat:      ['category','หมวดหมู่','cat','ประเภท','type'],
+  qty:      ['qty','จำนวน','คงเหลือ','quantity','stock','จำนวนคงเหลือ'],
+  unit:     ['unit','หน่วย','unit_name'],
+  price:    ['price','ราคา','ราคา/หน่วย','unit_price','ราคาต่อหน่วย'],
+  min:      ['min','ขั้นต่ำ','min_qty','จำนวนขั้นต่ำ','minimum'],
+  lid:      ['location','location_id','loc','จุดจัดเก็บ','location_code'],
+  note:     ['note','หมายเหตุ','remark','notes'],
+};
+
+function resolveCol(headers,fieldCandidates){
+  const norm=h=>String(h).trim().toLowerCase();
+  for(const c of fieldCandidates){
+    const idx=headers.findIndex(h=>norm(h)===norm(c));
+    if(idx>-1)return idx;
+  }
+  return -1;
+}
+
+function parseImportData(aoa,fname){
+  // Find header row (first non-empty row)
+  let headerRowIdx=0;
+  for(let i=0;i<Math.min(5,aoa.length);i++){
+    if(aoa[i].some(c=>String(c).trim())){headerRowIdx=i;break;}
+  }
+  const headers=aoa[headerRowIdx].map(h=>String(h).trim());
+  const dataRows=aoa.slice(headerRowIdx+1).filter(r=>r.some(c=>String(c).trim()));
+
+  // Map columns
+  const colIdx={};
+  for(const[field,candidates] of Object.entries(COL_MAP)){
+    colIdx[field]=resolveCol(headers,candidates);
+  }
+
+  if(colIdx.id===-1&&colIdx.name===-1){
+    sa('imp-alert','err','ไม่พบคอลัมน์ "รหัสสินค้า" หรือ "ชื่อสินค้า" — กรุณาตรวจสอบ header ของไฟล์');
+    return;
+  }
+
+  // Parse each row
+  impRows=dataRows.map((r,i)=>{
+    const get=(f,def='')=>{const idx=colIdx[f];return idx>-1?String(r[idx]??'').trim():def;};
+    const id=(get('id')||`IMP-${String(i+1).padStart(3,'0')}`).toUpperCase().replace(/\s+/g,'');
+    const name=get('name');
+    const cat=get('cat')||'อื่นๆ';
+    const qty=Math.max(0,parseInt(get('qty'))||0);
+    const unit=get('unit')||'อัน';
+    const price=Math.max(0,parseFloat(get('price'))||0);
+    const min=Math.max(0,parseInt(get('min'))||5);
+    const locRaw=get('lid');
+    // Resolve location: match by id, code, or name
+    const lid=resolveLocation(locRaw);
+    const note=get('note');
+    const errors=[];
+    if(!id)errors.push('ไม่มีรหัส');
+    if(!name)errors.push('ไม่มีชื่อสินค้า');
+    return{rowNum:i+1,id,name,cat,qty,unit,price,min,lid,locRaw,note,errors};
+  }).filter(r=>r.name||r.id); // skip fully empty rows
+
+  if(!impRows.length){sa('imp-alert','err','ไม่พบข้อมูลในไฟล์');return;}
+
+  document.getElementById('imp-step1').style.display='none';
+  document.getElementById('imp-step2').style.display='';
+  document.getElementById('imp-confirm-btn').style.display='';
+  buildPreview();
+}
+
+function resolveLocation(raw){
+  if(!raw)return'';
+  const s=String(raw).trim().toLowerCase();
+  const l=locs.find(l=>
+    l.id.toLowerCase()===s||
+    l.code.toLowerCase()===s||
+    l.name.toLowerCase()===s||
+    l.name.toLowerCase().includes(s)
+  );
+  return l?l.id:'';
+}
+
+function analyzeRow(r){
+  if(r.errors.length) return'err';
+  if(impMode==='replace') return'new';
+  const exists=items.find(i=>i.id===r.id);
+  if(!exists) return'new';
+  if(impMode==='upsert') return'upd';
+  return'skip'; // add mode: duplicate → skip
+}
+
+function buildPreview(){
+  const analyzed=impRows.map(r=>({...r,status:analyzeRow(r)}));
+  const counts={new:0,upd:0,skip:0,err:0};
+  analyzed.forEach(r=>counts[r.status]=(counts[r.status]||0)+1);
+
+  // Stats bar
+  const modeLabel={add:'เพิ่มเฉพาะใหม่',upsert:'เพิ่ม+อัปเดต',replace:'แทนที่ทั้งหมด'};
+  document.getElementById('imp-stats').innerHTML=`
+    <div class="imp-stat"><div class="imp-stat-val sv-new">${counts.new||0}</div><div class="imp-stat-lbl">เพิ่มใหม่</div></div>
+    <div class="imp-stat"><div class="imp-stat-val sv-upd">${counts.upd||0}</div><div class="imp-stat-lbl">อัปเดต</div></div>
+    <div class="imp-stat"><div class="imp-stat-val sv-skip">${counts.skip||0}</div><div class="imp-stat-lbl">ข้าม (ซ้ำ)</div></div>
+    <div class="imp-stat"><div class="imp-stat-val sv-err">${counts.err||0}</div><div class="imp-stat-lbl">Error</div></div>`;
+
+  // Preview rows
+  const statusLabel={new:'<span class="imp-row-badge rb-new">ใหม่</span>',upd:'<span class="imp-row-badge rb-upd">อัปเดต</span>',skip:'<span class="imp-row-badge rb-skip">ข้าม</span>',err:'<span class="imp-row-badge rb-err">Error</span>'};
+  document.getElementById('imp-preview-tb').innerHTML=analyzed.map(r=>`
+    <tr class="r-${r.status}">
+      <td class="dim" style="font-size:11px">${r.rowNum}</td>
+      <td>${statusLabel[r.status]||''}</td>
+      <td class="mono" style="font-size:11px">${r.id||'—'}</td>
+      <td style="font-weight:600">${r.name||'<span class="dim">—</span>'}</td>
+      <td><span class="badge b-cat" style="font-size:10px">${r.cat}</span></td>
+      <td>${r.qty}</td>
+      <td class="dim">${r.unit}</td>
+      <td class="mono" style="font-size:11px">฿${fmt(r.price)}</td>
+      <td class="dim">${r.min}</td>
+      <td>${r.lid?getLocBadge(r.lid):(r.locRaw?`<span class="dim" style="font-size:10px">ไม่พบ: ${r.locRaw}</span>`:'<span class="dim">—</span>')}</td>
+    </tr>`).join('');
+
+  document.getElementById('imp-row-count').textContent=`ทั้งหมด ${analyzed.length} แถว (${impMode==='replace'?'จะล้างข้อมูลเดิมทั้งหมดก่อน':'โหมด: '+modeLabel[impMode]})`;
+
+  // Disable confirm if all errors and nothing to do
+  const hasAction=(counts.new||0)+(counts.upd||0)>0;
+  document.getElementById('imp-confirm-btn').disabled=!hasAction;
+  if(!hasAction) sa('imp-alert','warn','ไม่มีรายการที่จะนำเข้า — ตรวจสอบข้อมูลในไฟล์');
+  else document.getElementById('imp-alert').innerHTML='';
+}
+
+/* ── Confirm Import ── */
+async function confirmImport(){
+  const btn=document.getElementById('imp-confirm-btn');
+  btn.disabled=true;btn.textContent='⏳ กำลังนำเข้า...';
+
+  const toProcess=impRows.filter(r=>analyzeRow(r)!=='err'&&analyzeRow(r)!=='skip');
+  let added=0,updated=0,failed=0;
+
+  if(impMode==='replace'){
+    // Clear all existing items (local only — Supabase handled per-item below)
+    items=[];
+  }
+
+  for(const r of toProcess){
+    const status=impMode==='replace'?'new':analyzeRow(r);
+    const it={id:r.id,name:r.name,cat:r.cat,lid:r.lid,qty:r.qty,unit:r.unit,min:r.min,price:r.price,note:r.note};
+    try{
+      if(status==='new'){
+        if(items.find(i=>i.id===it.id)&&impMode!=='replace'){failed++;continue;}
+        items.push(it);
+        if(sbUrl&&sbKey){
+          await sbReq('items',{method:'POST',
+            headers:{Prefer:'resolution=ignore-duplicates'},
+            body:JSON.stringify({id:it.id,name:it.name,category:it.cat,location_id:it.lid||null,qty:it.qty,unit:it.unit,min_qty:it.min,price:it.price,note:it.note})
+          });
+        }
+        added++;
+      } else if(status==='upd'){
+        const idx=items.findIndex(i=>i.id===it.id);
+        if(idx>-1) items[idx]={...items[idx],...it};
+        else items.push(it);
+        if(sbUrl&&sbKey){
+          await sbReq(`items?id=eq.${it.id}`,{method:'PATCH',
+            body:JSON.stringify({name:it.name,category:it.cat,location_id:it.lid||null,qty:it.qty,unit:it.unit,min_qty:it.min,price:it.price,note:it.note})
+          });
+        }
+        updated++;
+      }
+    }catch(e){console.warn('Import row error:',e.message);failed++;}
+  }
+
+  btn.disabled=false;btn.textContent='✓ นำเข้าข้อมูล';
+  closeImport();
+  renderInv();renderDash();popCatLoc();popItemSel();
+  const msg=`✓ Import เสร็จสิ้น — เพิ่มใหม่ ${added} รายการ${updated?` · อัปเดต ${updated} รายการ`:''}${failed?` · ล้มเหลว ${failed} รายการ`:''}`;
+  sa('g-alert',failed?'warn':'ok',msg,8000);
+}
+
+/* ── Download Template ── */
+function downloadTemplate(){
+  const wb=XLSX.utils.book_new();
+  const headers=['id','name','category','qty','unit','price','min_qty','location_id','note'];
+  const sample=[
+    ['IT001','กระดาษ A4 80g','กระดาษ',50,'รีม',120,10,'A-01',''],
+    ['IT002','ปากกาลูกลื่น (ดำ)','เครื่องเขียน',20,'แพ็ค',35,5,'A-01',''],
+    ['IT003','หมึกพิมพ์ HP','อุปกรณ์ IT',5,'ตลับ',850,2,'IT-01','เติมสต็อกทุก 3 เดือน'],
+  ];
+  const ws=XLSX.utils.aoa_to_sheet([headers,...sample]);
+  ws['!cols']=[{wch:10},{wch:28},{wch:16},{wch:8},{wch:8},{wch:10},{wch:10},{wch:14},{wch:28}];
+  // Highlight header row style hint
+  XLSX.utils.book_append_sheet(wb,ws,'สินค้า');
+  // Location reference sheet
+  const locHeaders=['location_id (รหัส)','ชื่อ Location','อาคาร/ชั้น'];
+  const locData=locs.map(l=>[l.code,l.name,l.floor||'']);
+  const ws2=XLSX.utils.aoa_to_sheet([locHeaders,...locData]);
+  ws2['!cols']=[{wch:18},{wch:26},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Location (อ้างอิง)');
+  XLSX.writeFile(wb,`OfficeStock_Import_Template_${tod()}.xlsx`);
+}
+
+
 function popExpSel(){popCatLoc();}
 const cleanLoc=id=>getLoc(id).replace(/[^\w\s\u0E00-\u0E7F]/g,'').trim();
 function expInv(){
