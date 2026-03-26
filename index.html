@@ -913,7 +913,7 @@ function getUsers(){
 function saveUsers(u){localStorage.setItem('os_users',JSON.stringify(u));}
 let users=getUsers();
 
-// Write a single user record to Supabase (upsert)
+// Write a single user record to Supabase (upsert) — silent if table missing
 async function sbSaveUser(u){
   if(!sbUrl||!sbKey)return;
   try{
@@ -922,15 +922,15 @@ async function sbSaveUser(u){
       headers:{Prefer:'resolution=merge-duplicates'},
       body:JSON.stringify({id:u.id,name:u.name,email:u.email,pass:u.pass,role:u.role,dept:u.dept||'',active:u.active!==false,created_at:u.created||tod()})
     });
-  }catch(e){console.warn('sbSaveUser failed:',e.message);}
+  }catch(e){console.warn('sbSaveUser skipped (table may not exist yet):',e.message);}
 }
 async function sbDeleteUser(id){
   if(!sbUrl||!sbKey)return;
-  try{await sbReq(`app_users?id=eq.${id}`,{method:'DELETE'});}catch(e){console.warn('sbDeleteUser failed:',e.message);}
+  try{await sbReq(`app_users?id=eq.${id}`,{method:'DELETE'});}catch(e){console.warn('sbDeleteUser skipped:',e.message);}
 }
 async function sbPatchUser(id,fields){
   if(!sbUrl||!sbKey)return;
-  try{await sbReq(`app_users?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(fields)});}catch(e){console.warn('sbPatchUser failed:',e.message);}
+  try{await sbReq(`app_users?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(fields)});}catch(e){console.warn('sbPatchUser skipped:',e.message);}
 }
 
 /* ══ AUTH STATE ══ */
@@ -1359,13 +1359,13 @@ async function sbReq(path,opts={}){
 async function syncAll(){
   if(!sbUrl||!sbKey)return;
   try{
-    const[ls,its,ts,pos,pis,aus]=await Promise.all([
+    // Sync core tables first — these must exist
+    const[ls,its,ts,pos,pis]=await Promise.all([
       sbReq('locations?order=code.asc'),
       sbReq('items?order=created_at.asc'),
       sbReq('transactions?order=date.desc&limit=300'),
       sbReq('purchase_orders?order=date.desc'),
       sbReq('po_items?select=*'),
-      sbReq('app_users?order=created_at.asc'),
     ]);
     if(ls?.length)locs=ls.map(r=>({id:r.id,code:r.code,name:r.name,icon:r.icon||'🗄️',floor:r.floor||'',desc:r.description||''}));
     if(its?.length){
@@ -1377,19 +1377,33 @@ async function syncAll(){
       poList=pos.map(r=>({id:r.id,date:r.date,req:r.requester,sup:r.supplier,need:r.needed_date||'',note:r.note||'',status:r.status,rows:[]}));
       if(pis?.length)pis.forEach(pi=>{const po=poList.find(p=>p.id===pi.po_id);if(po)po.rows.push({name:pi.item_name,qty:pi.qty,unit:pi.unit,price:pi.price});});
     }
-    if(aus?.length){
-      // sync Supabase users → localStorage (merge, don't overwrite session user's pass changes)
-      const merged=aus.map(r=>({id:r.id,name:r.name,email:r.email,pass:r.pass,role:r.role,dept:r.dept||'',created:r.created_at,active:r.active!==false}));
-      saveUsers(merged);users=merged;
-      // re-validate current session user against fresh data
-      if(currentUser){
-        const fresh=merged.find(u=>u.id===currentUser.id);
-        if(fresh){currentUser={...fresh};sessionStorage.setItem('os_current',JSON.stringify(currentUser));updateUserChip();applyRoleUI();}
+    document.getElementById('sync-lbl').textContent='⟳ '+new Date().toLocaleTimeString('th-TH');
+    setConn('ok','เชื่อมต่อแล้ว');
+    refreshAll();
+
+    // Sync app_users separately — optional table, won't break sync if missing
+    try{
+      const aus=await sbReq('app_users?order=created_at.asc');
+      if(aus?.length){
+        const merged=aus.map(r=>({id:r.id,name:r.name,email:r.email,pass:r.pass,role:r.role,dept:r.dept||'',created:r.created_at,active:r.active!==false}));
+        saveUsers(merged);users=merged;
+        if(currentUser){
+          const fresh=merged.find(u=>u.id===currentUser.id);
+          if(fresh){currentUser={...fresh};sessionStorage.setItem('os_current',JSON.stringify(currentUser));updateUserChip();applyRoleUI();}
+        }
+      }
+    }catch(ue){
+      // app_users table not yet created — show hint in settings only
+      console.warn('app_users sync skipped:',ue.message);
+      const hint=document.getElementById('set-alert');
+      if(hint&&hint.innerHTML===''){
+        hint.innerHTML=`<div class="alert a-warn"><span class="ai">⚠</span>ยังไม่พบตาราง <b>app_users</b> — กรุณารัน SQL Schema ใน Supabase แล้วกด "Reload schema cache" ใน Dashboard → API</div>`;
       }
     }
-    document.getElementById('sync-lbl').textContent='⟳ '+new Date().toLocaleTimeString('th-TH');
-    setConn('ok','เชื่อมต่อแล้ว');refreshAll();
-  }catch(e){setConn('err','Sync ไม่สำเร็จ: '+e.message);}
+  }catch(e){
+    setConn('err','Sync ไม่สำเร็จ');
+    sa('g-alert','err','Sync ไม่สำเร็จ: '+e.message);
+  }
 }
 async function saveSb(){
   sbUrl=document.getElementById('sb-url').value.trim().replace(/\/$/,'');
