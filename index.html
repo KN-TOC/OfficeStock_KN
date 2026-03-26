@@ -396,12 +396,12 @@ textarea{resize:vertical;min-height:68px}
     <div class="auth-divider">หรือเข้าได้เลย</div>
     <button class="qlogin-btn" onclick="quickLogin('admin@office.com','admin123')">
       <div class="qlogin-ico" style="background:rgba(232,184,75,.15)">👑</div>
-      <div><div style="font-weight:600;color:var(--t1)">ทดลองใช้ Admin</div><div style="font-size:11px;color:var(--t3)">admin@office.com</div></div>
+      <div><div style="font-weight:600;color:var(--t1)">ทดลองใช้ Admin</div><div style="font-size:11px;color:var(--t3)"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0160656c686f416e67676862642f626e6c">[email&#160;protected]</a></div></div>
       <span style="margin-left:auto;font-size:11px;color:var(--tdim)">→</span>
     </button>
     <button class="qlogin-btn" onclick="quickLogin('user@office.com','user123')">
       <div class="qlogin-ico" style="background:rgba(56,189,248,.12)">👤</div>
-      <div><div style="font-weight:600;color:var(--t1)">ทดลองใช้ User</div><div style="font-size:11px;color:var(--t3)">user@office.com</div></div>
+      <div><div style="font-weight:600;color:var(--t1)">ทดลองใช้ User</div><div style="font-size:11px;color:var(--t3)"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c9bcbaacbb89a6afafa0aaace7aaa6a4">[email&#160;protected]</a></div></div>
       <span style="margin-left:auto;font-size:11px;color:var(--tdim)">→</span>
     </button>
     <div class="auth-switch">ยังไม่มีบัญชี? <a onclick="showRegister()">สมัครสมาชิก</a></div>
@@ -859,6 +859,34 @@ textarea{resize:vertical;min-height:68px}
 </div>
 
 <script>
+/* ══ DATA (must be first — referenced by auth & render functions) ══ */
+let locs=[
+  {id:'L001',code:'A-01',name:'ตู้เก็บของ A1',icon:'🗄️',floor:'ชั้น 1',desc:'เครื่องเขียนทั่วไป'},
+  {id:'L002',code:'B-01',name:'ห้องเอกสาร',icon:'🏢',floor:'ชั้น 2',desc:'กระดาษและเอกสาร'},
+  {id:'L003',code:'IT-01',name:'ตู้อุปกรณ์ IT',icon:'🖥️',floor:'ชั้น 1',desc:'อุปกรณ์ IT หมึกพิมพ์'},
+];
+let items=[
+  {id:'IT001',name:'กระดาษ A4 80g',cat:'กระดาษ',lid:'L002',qty:45,unit:'รีม',min:10,price:120,note:''},
+  {id:'IT002',name:'ปากกาลูกลื่น (ดำ)',cat:'เครื่องเขียน',lid:'L001',qty:6,unit:'แพ็ค',min:5,price:35,note:''},
+  {id:'IT003',name:'แฟ้มเจาะ',cat:'เครื่องเขียน',lid:'L001',qty:2,unit:'อัน',min:8,price:25,note:''},
+];
+let txns=[
+  {id:'T001',date:'2026-03-20 09:15',type:'รับสินค้า',iid:'IT001',iname:'กระดาษ A4 80g',lid:'L002',qty:20,by:'คุณสมชาย',ref:'DO-001',note:''},
+  {id:'T002',date:'2026-03-21 10:30',type:'เบิกสินค้า',iid:'IT002',iname:'ปากกาลูกลื่น (ดำ)',lid:'L001',qty:2,by:'แผนกบัญชี',ref:'',note:'ใช้งานประจำ'},
+  {id:'T003',date:'2026-03-22 14:00',type:'รับสินค้า',iid:'IT004',iname:'หมึกพิมพ์ HP',lid:'L003',qty:5,by:'คุณมาลี',ref:'DO-002',note:''},
+];
+let poList=[
+  {id:'PO-2026-001',date:'2026-03-18',req:'คุณสมชาย',sup:'บริษัท ABC จำกัด',need:'2026-03-25',note:'',status:'อนุมัติแล้ว',rows:[{name:'กระดาษ A4 80g',qty:50,unit:'รีม',price:120},{name:'ปากกาลูกลื่น (ดำ)',qty:10,unit:'แพ็ค',price:35}]},
+  {id:'PO-2026-002',date:'2026-03-22',req:'คุณมาลี',sup:'ร้าน XYZ Office',need:'2026-03-30',note:'เร่งด่วน',status:'รออนุมัติ',rows:[{name:'หมึกพิมพ์ HP',qty:5,unit:'ตลับ',price:850},{name:'แฟ้มเจาะ',qty:20,unit:'อัน',price:25}]},
+];
+let sbUrl=localStorage.getItem('sb_url')||'';
+let sbKey=localStorage.getItem('sb_key')||'';
+let ni=7,nt=6,np=3,nl=4;
+let editingItemId=null;
+let editingPoId=null;
+
+const TITLES={dashboard:'Dashboard',inventory:'รายการสินค้า',locations:'จุดจัดเก็บ (Location)',receive:'รับสินค้า',issue:'เบิกสินค้า',history:'ประวัติรายการ',po:'ใบสั่งซื้อ (PO)',export:'Export Excel',users:'จัดการผู้ใช้งาน',settings:'Supabase Config'};
+
 /* ══ THEME ══ */
 function toggleTheme(){
   const body=document.body,btn=document.getElementById('theme-toggle');
@@ -1146,37 +1174,6 @@ function delUser(id){
   sa('g-alert','ok','ลบผู้ใช้เรียบร้อยแล้ว');
 }
 
-/* ══ CHECK AUTH ON LOAD ══ */
-(function(){
-  const saved=sessionStorage.getItem('os_current');
-  if(saved){currentUser=JSON.parse(saved);enterApp();}
-})();
-
-/* ══ DATA ══ */
-let locs=[
-  {id:'L001',code:'A-01',name:'ตู้เก็บของ A1',icon:'🗄️',floor:'ชั้น 1',desc:'เครื่องเขียนทั่วไป'},
-  {id:'L002',code:'B-01',name:'ห้องเอกสาร',icon:'🏢',floor:'ชั้น 2',desc:'กระดาษและเอกสาร'},
-  {id:'L003',code:'IT-01',name:'ตู้อุปกรณ์ IT',icon:'🖥️',floor:'ชั้น 1',desc:'อุปกรณ์ IT หมึกพิมพ์'},
-];
-let items=[
-  {id:'IT001',name:'กระดาษ A4 80g',cat:'กระดาษ',lid:'L002',qty:45,unit:'รีม',min:10,price:120,note:''},
-  {id:'IT002',name:'ปากกาลูกลื่น (ดำ)',cat:'เครื่องเขียน',lid:'L001',qty:6,unit:'แพ็ค',min:5,price:35,note:''},
-  {id:'IT003',name:'แฟ้มเจาะ',cat:'เครื่องเขียน',lid:'L001',qty:2,unit:'อัน',min:8,price:25,note:''},
-];
-let txns=[
-  {id:'T001',date:'2026-03-20 09:15',type:'รับสินค้า',iid:'IT001',iname:'กระดาษ A4 80g',lid:'L002',qty:20,by:'คุณสมชาย',ref:'DO-001',note:''},
-  {id:'T002',date:'2026-03-21 10:30',type:'เบิกสินค้า',iid:'IT002',iname:'ปากกาลูกลื่น (ดำ)',lid:'L001',qty:2,by:'แผนกบัญชี',ref:'',note:'ใช้งานประจำ'},
-  {id:'T003',date:'2026-03-22 14:00',type:'รับสินค้า',iid:'IT004',iname:'หมึกพิมพ์ HP',lid:'L003',qty:5,by:'คุณมาลี',ref:'DO-002',note:''},
-];
-let poList=[
-  {id:'PO-2026-001',date:'2026-03-18',req:'คุณสมชาย',sup:'บริษัท ABC จำกัด',need:'2026-03-25',note:'',status:'อนุมัติแล้ว',rows:[{name:'กระดาษ A4 80g',qty:50,unit:'รีม',price:120},{name:'ปากกาลูกลื่น (ดำ)',qty:10,unit:'แพ็ค',price:35}]},
-  {id:'PO-2026-002',date:'2026-03-22',req:'คุณมาลี',sup:'ร้าน XYZ Office',need:'2026-03-30',note:'เร่งด่วน',status:'รออนุมัติ',rows:[{name:'หมึกพิมพ์ HP',qty:5,unit:'ตลับ',price:850},{name:'แฟ้มเจาะ',qty:20,unit:'อัน',price:25}]},
-];
-let sbUrl=localStorage.getItem('sb_url')||'',sbKey=localStorage.getItem('sb_key')||'';
-let ni=7,nt=6,np=3,nl=4;
-let editingItemId=null;
-let editingPoId=null;
-
 /* ══ SQL ══ */
 const SQL=`-- OfficeStock — Supabase SQL Schema
 
@@ -1344,7 +1341,6 @@ function cats(){return[...new Set(items.map(i=>i.cat))];}
 function isAdmin(){return currentUser&&currentUser.role==='admin';}
 
 /* ══ NAV ══ */
-const TITLES={dashboard:'Dashboard',inventory:'รายการสินค้า',locations:'จุดจัดเก็บ (Location)',receive:'รับสินค้า',issue:'เบิกสินค้า',history:'ประวัติรายการ',po:'ใบสั่งซื้อ (PO)',export:'Export Excel',users:'จัดการผู้ใช้งาน',settings:'Supabase Config'};
 function nav(name,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('active'));
@@ -1891,6 +1887,19 @@ function renderSql(){
 renderSql();
 document.getElementById('sb-url').value=sbUrl;
 document.getElementById('sb-key').value=sbKey;
+
+/* ══ CHECK AUTH ON LOAD (must be last — all functions & data must exist first) ══ */
+(function(){
+  const saved=sessionStorage.getItem('os_current');
+  if(saved){
+    try{
+      currentUser=JSON.parse(saved);
+      enterApp();
+    }catch(e){
+      sessionStorage.removeItem('os_current');
+    }
+  }
+})();
 </script>
 </body>
 </html>
