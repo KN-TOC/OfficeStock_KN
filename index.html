@@ -899,11 +899,10 @@ function loadTheme(){
 }
 document.addEventListener('DOMContentLoaded',loadTheme);
 
-/* ══ USER STORAGE (localStorage-based for demo) ══ */
+/* ══ USER STORAGE — localStorage fallback, Supabase when connected ══ */
 function getUsers(){
   const raw=localStorage.getItem('os_users');
   if(raw)return JSON.parse(raw);
-  // Default users
   const def=[
     {id:'U001',name:'Admin ระบบ',email:'admin@office.com',pass:'admin123',role:'admin',dept:'IT',created:'2026-01-01',active:true},
     {id:'U002',name:'สมชาย ใจดี',email:'user@office.com',pass:'user123',role:'user',dept:'ธุรการ',created:'2026-01-15',active:true},
@@ -913,6 +912,26 @@ function getUsers(){
 }
 function saveUsers(u){localStorage.setItem('os_users',JSON.stringify(u));}
 let users=getUsers();
+
+// Write a single user record to Supabase (upsert)
+async function sbSaveUser(u){
+  if(!sbUrl||!sbKey)return;
+  try{
+    await sbReq('app_users',{
+      method:'POST',
+      headers:{Prefer:'resolution=merge-duplicates'},
+      body:JSON.stringify({id:u.id,name:u.name,email:u.email,pass:u.pass,role:u.role,dept:u.dept||'',active:u.active!==false,created_at:u.created||tod()})
+    });
+  }catch(e){console.warn('sbSaveUser failed:',e.message);}
+}
+async function sbDeleteUser(id){
+  if(!sbUrl||!sbKey)return;
+  try{await sbReq(`app_users?id=eq.${id}`,{method:'DELETE'});}catch(e){console.warn('sbDeleteUser failed:',e.message);}
+}
+async function sbPatchUser(id,fields){
+  if(!sbUrl||!sbKey)return;
+  try{await sbReq(`app_users?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(fields)});}catch(e){console.warn('sbPatchUser failed:',e.message);}
+}
 
 /* ══ AUTH STATE ══ */
 let currentUser=null;
@@ -951,6 +970,7 @@ function doLogin(){
   const email=document.getElementById('l-email').value.trim().toLowerCase();
   const pass=document.getElementById('l-pass').value;
   if(!email||!pass){authAlert('login-alert','warn','กรุณากรอกอีเมลและรหัสผ่าน');return;}
+  // Always check against local store (which is synced from Supabase on connect)
   users=getUsers();
   const u=users.find(u=>u.email.toLowerCase()===email&&u.pass===pass&&u.active!==false);
   if(!u){authAlert('login-alert','err','อีเมลหรือรหัสผ่านไม่ถูกต้อง');return;}
@@ -959,7 +979,7 @@ function doLogin(){
   enterApp();
 }
 
-function doRegister(){
+async function doRegister(){
   const btn=document.getElementById('reg-btn');
   const name=document.getElementById('r-name').value.trim();
   const email=document.getElementById('r-email').value.trim().toLowerCase();
@@ -971,10 +991,11 @@ function doRegister(){
   if(pass!==pass2){authAlert('reg-alert','err','รหัสผ่านไม่ตรงกัน');return;}
   users=getUsers();
   if(users.find(u=>u.email.toLowerCase()===email)){authAlert('reg-alert','err','อีเมลนี้มีผู้ใช้งานแล้ว');return;}
+  btn.disabled=true;btn.textContent='⏳ กำลังสร้างบัญชี...';
   const nu={id:'U'+String(Date.now()).slice(-6),name,email,pass,role:selectedRegRole,dept,created:tod(),active:true};
   users.push(nu);saveUsers(users);
+  await sbSaveUser(nu); // write to Supabase if connected
   authAlert('reg-alert','ok','สร้างบัญชีสำเร็จ! กำลังเข้าสู่ระบบ...');
-  btn.disabled=true;
   setTimeout(()=>{currentUser=nu;sessionStorage.setItem('os_current',JSON.stringify(nu));enterApp();},1200);
 }
 
@@ -1044,7 +1065,7 @@ function openChangePass(){
   document.getElementById('chpass-alert').innerHTML='';
   openM('m-chpass');
 }
-function doChangePass(){
+async function doChangePass(){
   const old=document.getElementById('cp-old').value;
   const nw=document.getElementById('cp-new').value;
   const nw2=document.getElementById('cp-new2').value;
@@ -1054,7 +1075,13 @@ function doChangePass(){
   if(nw!==nw2){sa('chpass-alert','err','รหัสผ่านใหม่ไม่ตรงกัน');return;}
   users=getUsers();
   const idx=users.findIndex(u=>u.id===currentUser.id);
-  if(idx>-1){users[idx].pass=nw;saveUsers(users);currentUser.pass=nw;sessionStorage.setItem('os_current',JSON.stringify(currentUser));}
+  if(idx>-1){
+    users[idx].pass=nw;
+    saveUsers(users);
+    currentUser.pass=nw;
+    sessionStorage.setItem('os_current',JSON.stringify(currentUser));
+    await sbPatchUser(currentUser.id,{pass:nw});
+  }
   sa('chpass-alert','ok','เปลี่ยนรหัสผ่านสำเร็จ ✓');
   setTimeout(()=>closeM('m-chpass'),1400);
 }
@@ -1125,7 +1152,7 @@ function openEditUser(id){
   openM('m-user');
 }
 
-function saveUser(){
+async function saveUser(){
   const name=document.getElementById('mu-name').value.trim();
   const email=document.getElementById('mu-email').value.trim().toLowerCase();
   const dept=document.getElementById('mu-dept').value.trim();
@@ -1145,6 +1172,8 @@ function saveUser(){
       users[idx].pass=pass;
     }
     users[idx]={...users[idx],name,email,dept,role};
+    saveUsers(users);
+    await sbSaveUser(users[idx]);
     if(users[idx].id===currentUser?.id){currentUser={...currentUser,name,email,dept,role};sessionStorage.setItem('os_current',JSON.stringify(currentUser));updateUserChip();}
   } else {
     if(!pass){sa('m-user-alert','warn','กรุณากรอกรหัสผ่าน');return;}
@@ -1152,32 +1181,36 @@ function saveUser(){
     if(pass!==pass2){sa('m-user-alert','err','รหัสผ่านไม่ตรงกัน');return;}
     if(users.find(u=>u.email.toLowerCase()===email)){sa('m-user-alert','err','อีเมลนี้มีผู้ใช้งานแล้ว');return;}
     const nu={id:'U'+String(Date.now()).slice(-6),name,email,pass,role,dept,created:tod(),active:true};
-    users.push(nu);
+    users.push(nu);saveUsers(users);
+    await sbSaveUser(nu);
   }
-  saveUsers(users);
   closeM('m-user');renderUsers();
   sa('g-alert','ok',editingUserId?`✓ แก้ไขข้อมูลผู้ใช้ "${name}" เรียบร้อย`:`✓ เพิ่มผู้ใช้ "${name}" เรียบร้อย`);
 }
 
-function toggleUserActive(id){
+async function toggleUserActive(id){
   users=getUsers();
   const idx=users.findIndex(u=>u.id===id);
   if(idx===-1)return;
   users[idx].active=!(users[idx].active!==false);
-  saveUsers(users);renderUsers();
+  saveUsers(users);
+  await sbPatchUser(id,{active:users[idx].active});
+  renderUsers();
 }
-function delUser(id){
+async function delUser(id){
   if(!confirm('ยืนยันการลบผู้ใช้งาน?'))return;
   users=getUsers();
   users=users.filter(u=>u.id!==id);
-  saveUsers(users);renderUsers();
+  saveUsers(users);
+  await sbDeleteUser(id);
+  renderUsers();
   sa('g-alert','ok','ลบผู้ใช้เรียบร้อยแล้ว');
 }
 
 /* ══ SQL ══ */
 const SQL=`-- OfficeStock — Supabase SQL Schema
 
--- 1. Locations
+-- 1. Locations (จุดจัดเก็บ)
 CREATE TABLE IF NOT EXISTS locations (
   id TEXT PRIMARY KEY,
   code TEXT UNIQUE NOT NULL,
@@ -1188,7 +1221,7 @@ CREATE TABLE IF NOT EXISTS locations (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Items
+-- 2. Items (สินค้า)
 CREATE TABLE IF NOT EXISTS items (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -1203,7 +1236,7 @@ CREATE TABLE IF NOT EXISTS items (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. Transactions
+-- 3. Transactions (รับ-จ่าย)
 CREATE TABLE IF NOT EXISTS transactions (
   id TEXT PRIMARY KEY,
   date TEXT NOT NULL,
@@ -1246,27 +1279,72 @@ CREATE TABLE IF NOT EXISTS po_items (
     (qty * price) STORED
 );
 
--- 6. RLS
+-- 6. App Users (ผู้ใช้งานระบบ)
+-- หมายเหตุ: ตารางนี้แยกจาก Supabase Auth
+-- ใช้สำหรับจัดการสิทธิ์ภายในแอป
+CREATE TABLE IF NOT EXISTS app_users (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  pass TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'user'
+    CHECK (role IN ('admin','user')),
+  dept TEXT,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. Row Level Security
 ALTER TABLE locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE purchase_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE po_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "all" ON locations FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "all" ON items FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "all" ON transactions FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "all" ON purchase_orders FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "all" ON po_items FOR ALL USING (true) WITH CHECK (true);
+ALTER TABLE app_users ENABLE ROW LEVEL SECURITY;
 
--- 7. Auto updated_at
+CREATE POLICY "all" ON locations FOR ALL
+  TO anon, authenticated
+  USING (true) WITH CHECK (true);
+CREATE POLICY "all" ON items FOR ALL
+  TO anon, authenticated
+  USING (true) WITH CHECK (true);
+CREATE POLICY "all" ON transactions FOR ALL
+  TO anon, authenticated
+  USING (true) WITH CHECK (true);
+CREATE POLICY "all" ON purchase_orders FOR ALL
+  TO anon, authenticated
+  USING (true) WITH CHECK (true);
+CREATE POLICY "all" ON po_items FOR ALL
+  TO anon, authenticated
+  USING (true) WITH CHECK (true);
+CREATE POLICY "all" ON app_users FOR ALL
+  TO anon, authenticated
+  USING (true) WITH CHECK (true);
+
+-- 8. Auto updated_at trigger
 CREATE OR REPLACE FUNCTION _upd_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
-BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$;
+BEGIN NEW.updated_at = NOW(); RETURN NEW;
+END; $$;
+
 CREATE TRIGGER trg_items BEFORE UPDATE ON items
   FOR EACH ROW EXECUTE FUNCTION _upd_at();
 CREATE TRIGGER trg_po BEFORE UPDATE ON
   purchase_orders FOR EACH ROW
-  EXECUTE FUNCTION _upd_at();`;
+  EXECUTE FUNCTION _upd_at();
+CREATE TRIGGER trg_users BEFORE UPDATE ON
+  app_users FOR EACH ROW
+  EXECUTE FUNCTION _upd_at();
+
+-- 9. Seed default admin user
+-- รหัสผ่าน: admin123 (เปลี่ยนหลัง deploy)
+INSERT INTO app_users
+  (id, name, email, pass, role, dept, active, created_at)
+VALUES
+  ('U001','Admin ระบบ','admin@office.com',
+   'admin123','admin','IT',true,'2026-01-01')
+ON CONFLICT (id) DO NOTHING;`;
 
 /* ══ SUPABASE ══ */
 async function sbReq(path,opts={}){
@@ -1281,12 +1359,13 @@ async function sbReq(path,opts={}){
 async function syncAll(){
   if(!sbUrl||!sbKey)return;
   try{
-    const[ls,its,ts,pos,pis]=await Promise.all([
+    const[ls,its,ts,pos,pis,aus]=await Promise.all([
       sbReq('locations?order=code.asc'),
       sbReq('items?order=created_at.asc'),
       sbReq('transactions?order=date.desc&limit=300'),
       sbReq('purchase_orders?order=date.desc'),
       sbReq('po_items?select=*'),
+      sbReq('app_users?order=created_at.asc'),
     ]);
     if(ls?.length)locs=ls.map(r=>({id:r.id,code:r.code,name:r.name,icon:r.icon||'🗄️',floor:r.floor||'',desc:r.description||''}));
     if(its?.length){
@@ -1298,9 +1377,19 @@ async function syncAll(){
       poList=pos.map(r=>({id:r.id,date:r.date,req:r.requester,sup:r.supplier,need:r.needed_date||'',note:r.note||'',status:r.status,rows:[]}));
       if(pis?.length)pis.forEach(pi=>{const po=poList.find(p=>p.id===pi.po_id);if(po)po.rows.push({name:pi.item_name,qty:pi.qty,unit:pi.unit,price:pi.price});});
     }
+    if(aus?.length){
+      // sync Supabase users → localStorage (merge, don't overwrite session user's pass changes)
+      const merged=aus.map(r=>({id:r.id,name:r.name,email:r.email,pass:r.pass,role:r.role,dept:r.dept||'',created:r.created_at,active:r.active!==false}));
+      saveUsers(merged);users=merged;
+      // re-validate current session user against fresh data
+      if(currentUser){
+        const fresh=merged.find(u=>u.id===currentUser.id);
+        if(fresh){currentUser={...fresh};sessionStorage.setItem('os_current',JSON.stringify(currentUser));updateUserChip();applyRoleUI();}
+      }
+    }
     document.getElementById('sync-lbl').textContent='⟳ '+new Date().toLocaleTimeString('th-TH');
     setConn('ok','เชื่อมต่อแล้ว');refreshAll();
-  }catch(e){setConn('err','Sync ไม่สำเร็จ');}
+  }catch(e){setConn('err','Sync ไม่สำเร็จ: '+e.message);}
 }
 async function saveSb(){
   sbUrl=document.getElementById('sb-url').value.trim().replace(/\/$/,'');
