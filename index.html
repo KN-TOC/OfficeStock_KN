@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OfficeStock — ระบบจัดการอุปกรณ์สำนักงาน</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -431,7 +431,7 @@ textarea{resize:vertical;min-height:68px}
       </div>
     </div>
     <div class="auth-title">เข้าสู่ระบบ</div>
-    <div class="auth-sub">กรอกอีเมลและรหัสผ่านเพื่อเข้าใช้งาน</div>
+    <div class="auth-sub">ยินดีต้อนรับกลับ! กรุณากรอกข้อมูลเพื่อเข้าใช้งาน</div>
     <div id="login-alert"></div>
     <div class="auth-fg">
       <label class="auth-label">อีเมล</label>
@@ -442,7 +442,7 @@ textarea{resize:vertical;min-height:68px}
       <input class="auth-inp" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password">
     </div>
     <button class="auth-btn" id="login-btn" onclick="doLogin()">เข้าสู่ระบบ →</button>
-    <div class="auth-switch">ยังไม่มีบัญชี? <a onclick="showRegister()">สร้างบัญชีผู้ใช้</a></div>
+    <div class="auth-switch">ยังไม่มีบัญชี? <a onclick="showRegister()">สมัครสมาชิก</a></div>
   </div>
 
   <!-- REGISTER PANEL -->
@@ -620,7 +620,7 @@ textarea{resize:vertical;min-height:68px}
         <div class="card-h"><div class="card-t">↓ บันทึกรับสินค้าเข้าคลัง</div></div>
         <div class="card-b">
           <div id="recv-alert"></div>
-          <div class="gr2 mb13">
+          <div class="mb13" style="display:grid;grid-template-columns:2fr 0.6fr;gap:13px">
             <div class="fg"><label class="fl">สินค้า *</label><select id="recv-item"></select></div>
             <div class="fg"><label class="fl">จำนวนที่รับ *</label><input type="number" id="recv-qty" min="1" value="1"></div>
             <div class="fg"><label class="fl">ผู้รับ *</label><input id="recv-by" placeholder="ชื่อผู้รับ"></div>
@@ -638,7 +638,7 @@ textarea{resize:vertical;min-height:68px}
         <div class="card-h"><div class="card-t">↑ บันทึกเบิกสินค้าออก</div></div>
         <div class="card-b">
           <div id="issue-alert"></div>
-          <div class="gr2 mb13">
+          <div class="mb13" style="display:grid;grid-template-columns:2fr 0.6fr;gap:13px">
             <div class="fg"><label class="fl">สินค้า *</label><select id="issue-item"></select></div>
             <div class="fg"><label class="fl">จำนวนที่เบิก *</label><input type="number" id="issue-qty" min="1" value="1"></div>
             <div class="fg"><label class="fl">แผนก / ผู้เบิก *</label><input id="issue-by" placeholder="ชื่อแผนกหรือผู้เบิก"></div>
