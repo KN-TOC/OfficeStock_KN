@@ -387,7 +387,7 @@ textarea{resize:vertical;min-height:68px}
 .imp-tmpl-info{font-size:12px;color:var(--t3);}
 .imp-tmpl-info b{color:var(--gold);}
 .imp-mode-row{display:flex;gap:8px;margin-bottom:14px;}
-.imp-mode-btn{flex:1;padding:9px 12px;border-radius:var(--r10);border:2px solid var(--bd);background:transparent;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--t2);text-align:center;transition:all .14s;}
+.imp-mode-btn{flex:1;padding:9px 12px;border-radius:var(--r10);border:2px solid var(--bd);background:transparent;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--t2);text-align:center;transition:all .14px;}
 .imp-mode-btn.sel{border-color:var(--cyan);background:rgba(56,189,248,.08);color:var(--cyan);}
 .imp-mode-btn:hover:not(.sel){border-color:var(--bhi);background:var(--n850);}
 .imp-mode-icon{font-size:16px;display:block;margin-bottom:3px;}
@@ -520,8 +520,8 @@ textarea{resize:vertical;min-height:68px}
     <div class="sb-item" onclick="nav('export',this)"><span class="sb-ico2">⇩</span> Export Excel</div>
     <div class="sb-grp" id="sb-admin-grp">ผู้ดูแลระบบ</div>
     <div class="sb-item" id="sb-users" onclick="nav('users',this)"><span class="sb-ico2">👥</span> จัดการผู้ใช้</div>
-    <div class="sb-grp">ระบบ</div>
-    <div class="sb-item" onclick="nav('settings',this)"><span class="sb-ico2">◎</span> Supabase Config</div>
+    <div class="sb-item" id="sb-settings" onclick="nav('settings',this)"><span class="sb-ico2">◎</span> Supabase Config</div>
+    <div class="sb-grp" id="sb-sys-grp">ระบบ</div>
   </div>
   <div class="sb-foot">
     <div class="conn-row">
@@ -550,7 +550,7 @@ textarea{resize:vertical;min-height:68px}
         <span style="font-size:10px;color:var(--tdim);margin-left:2px">▾</span>
         <div class="user-menu" id="user-menu">
           <div class="um-head" id="um-email-head">—</div>
-          <div class="um-item" onclick="nav('users',null)">👥 จัดการผู้ใช้</div>
+          <div class="um-item" id="um-users-link" onclick="nav('users',null)">👥 จัดการผู้ใช้</div>
           <div class="um-item" onclick="openChangePass()">🔑 เปลี่ยนรหัสผ่าน</div>
           <div class="um-sep"></div>
           <div class="um-item danger" onclick="doLogout()">⏏ ออกจากระบบ</div>
@@ -773,31 +773,36 @@ textarea{resize:vertical;min-height:68px}
 
     <!-- SETTINGS -->
     <div id="sec-settings" class="section">
-      <div class="set-grid">
-        <div>
-          <div class="sbp mb13">
-            <div class="sbp-t">⬡ Supabase Connection</div>
-            <div id="set-alert"></div>
-            <div class="fg mb13"><label class="fl">Project URL</label><input id="sb-url" placeholder="https://xxxx.supabase.co"></div>
-            <div class="fg mb13"><label class="fl">Anon Public Key</label><input id="sb-key" type="password" placeholder="eyJhbGci..."></div>
-            <div class="flex">
-              <button class="btn btn-gold btn-sm" onclick="saveSb()">✓ บันทึก & ทดสอบ</button>
-              <button class="btn btn-ghost btn-sm" onclick="clearSb()">✕ ล้างค่า</button>
+      <div id="sec-settings-guard" style="display:none">
+        <div class="guard-badge">🔒 เฉพาะ Admin เท่านั้นที่เข้าถึงได้</div>
+      </div>
+      <div id="sec-settings-content">
+        <div class="set-grid">
+          <div>
+            <div class="sbp mb13">
+              <div class="sbp-t">⬡ Supabase Connection</div>
+              <div id="set-alert"></div>
+              <div class="fg mb13"><label class="fl">Project URL</label><input id="sb-url" placeholder="https://xxxx.supabase.co"></div>
+              <div class="fg mb13"><label class="fl">Anon Public Key</label><input id="sb-key" type="password" placeholder="eyJhbGci..."></div>
+              <div class="flex">
+                <button class="btn btn-gold btn-sm" onclick="saveSb()">✓ บันทึก & ทดสอบ</button>
+                <button class="btn btn-ghost btn-sm" onclick="clearSb()">✕ ล้างค่า</button>
+              </div>
+            </div>
+            <div class="sbp">
+              <div class="sbp-t">◈ ขั้นตอนการตั้งค่า</div>
+              <div class="steps">
+                <div class="step-r"><div class="step-n">1</div><div class="step-c"><h5>สร้าง Supabase Project</h5><p>ไปที่ <a href="https://supabase.com" target="_blank">supabase.com</a> → New Project</p></div></div>
+                <div class="step-r"><div class="step-n">2</div><div class="step-c"><h5>รัน SQL Schema</h5><p>SQL Editor → New Query → วาง SQL ด้านขวา → Run</p></div></div>
+                <div class="step-r"><div class="step-n">3</div><div class="step-c"><h5>คัดลอก Credentials</h5><p>Settings → API → Project URL + anon public key</p></div></div>
+                <div class="step-r"><div class="step-n">4</div><div class="step-c"><h5>กรอกและบันทึก</h5><p>กรอกค่าด้านบน → กด "บันทึก & ทดสอบ"</p></div></div>
+              </div>
             </div>
           </div>
-          <div class="sbp">
-            <div class="sbp-t">◈ ขั้นตอนการตั้งค่า</div>
-            <div class="steps">
-              <div class="step-r"><div class="step-n">1</div><div class="step-c"><h5>สร้าง Supabase Project</h5><p>ไปที่ <a href="https://supabase.com" target="_blank">supabase.com</a> → New Project</p></div></div>
-              <div class="step-r"><div class="step-n">2</div><div class="step-c"><h5>รัน SQL Schema</h5><p>SQL Editor → New Query → วาง SQL ด้านขวา → Run</p></div></div>
-              <div class="step-r"><div class="step-n">3</div><div class="step-c"><h5>คัดลอก Credentials</h5><p>Settings → API → Project URL + anon public key</p></div></div>
-              <div class="step-r"><div class="step-n">4</div><div class="step-c"><h5>กรอกและบันทึก</h5><p>กรอกค่าด้านบน → กด "บันทึก & ทดสอบ"</p></div></div>
-            </div>
+          <div class="sbp" style="display:flex;flex-direction:column;gap:9px">
+            <div class="fb"><div class="sbp-t" style="margin:0">◈ SQL Schema</div><button class="btn btn-ghost btn-xs" onclick="copySql()">⎘ คัดลอก</button></div>
+            <div class="code-box" id="sql-box"></div>
           </div>
-        </div>
-        <div class="sbp" style="display:flex;flex-direction:column;gap:9px">
-          <div class="fb"><div class="sbp-t" style="margin:0">◈ SQL Schema</div><button class="btn btn-ghost btn-xs" onclick="copySql()">⎘ คัดลอก</button></div>
-          <div class="code-box" id="sql-box"></div>
         </div>
       </div>
     </div>
@@ -1089,7 +1094,6 @@ function doLogin(){
   const email=document.getElementById('l-email').value.trim().toLowerCase();
   const pass=document.getElementById('l-pass').value;
   if(!email||!pass){authAlert('login-alert','warn','กรุณากรอกอีเมลและรหัสผ่าน');return;}
-  // Always check against local store (which is synced from Supabase on connect)
   users=getUsers();
   const u=users.find(u=>u.email.toLowerCase()===email&&u.pass===pass&&u.active!==false);
   if(!u){authAlert('login-alert','err','อีเมลหรือรหัสผ่านไม่ถูกต้อง');return;}
@@ -1113,7 +1117,7 @@ async function doRegister(){
   btn.disabled=true;btn.textContent='⏳ กำลังสร้างบัญชี...';
   const nu={id:'U'+String(Date.now()).slice(-6),name,email,pass,role:selectedRegRole,dept,created:tod(),active:true};
   users.push(nu);saveUsers(users);
-  await sbSaveUser(nu); // write to Supabase if connected
+  await sbSaveUser(nu);
   authAlert('reg-alert','ok','สร้างบัญชีสำเร็จ! กำลังเข้าสู่ระบบ...');
   setTimeout(()=>{currentUser=nu;sessionStorage.setItem('os_current',JSON.stringify(nu));enterApp();},1200);
 }
@@ -1121,6 +1125,7 @@ async function doRegister(){
 function enterApp(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-shell').style.display='flex';
+  
   updateUserChip();
   applyRoleUI();
   refreshAll();
@@ -1152,12 +1157,26 @@ function updateUserChip(){
 }
 
 function applyRoleUI(){
-  const isAdmin=currentUser&&currentUser.role==='admin';
-  document.getElementById('sb-admin-grp').style.display=isAdmin?'':'none';
-  document.getElementById('sb-users').style.display=isAdmin?'':'none';
-  // hide user-menu users item for non-admin
-  const umUsers=document.querySelector('.um-item[onclick*="nav(\'users\'"]');
-  if(umUsers)umUsers.style.display=isAdmin?'':'none';
+  const isAdm=currentUser&&currentUser.role==='admin';
+
+  // Sidebar: Admin-only group label + menu items
+  document.getElementById('sb-admin-grp').style.display=isAdm?'':'none';
+  document.getElementById('sb-users').style.display=isAdm?'':'none';
+  document.getElementById('sb-settings').style.display=isAdm?'':'none';
+
+  // Hide the "ระบบ" group label since it's now empty for non-admins
+  const sysGrp=document.getElementById('sb-sys-grp');
+  if(sysGrp)sysGrp.style.display='none'; // no longer needed — settings moved under admin
+
+  // User dropdown menu: hide "จัดการผู้ใช้" for non-admins
+  const umUsers=document.getElementById('um-users-link');
+  if(umUsers)umUsers.style.display=isAdm?'':'none';
+
+  // Settings page: show guard for non-admins
+  const settingsGuard=document.getElementById('sec-settings-guard');
+  const settingsContent=document.getElementById('sec-settings-content');
+  if(settingsGuard)settingsGuard.style.display=isAdm?'none':'';
+  if(settingsContent)settingsContent.style.display=isAdm?'':'none';
 }
 
 function toggleUserMenu(){
@@ -1248,7 +1267,6 @@ function openAddUser(){
   document.getElementById('m-user-title').textContent='＋ เพิ่มผู้ใช้ใหม่';
   document.getElementById('m-user-save-btn').textContent='✓ บันทึก';
   document.getElementById('m-user-alert').innerHTML='';
-  // show pass fields
   document.getElementById('mu-pass').closest('.fg').style.display='';
   document.getElementById('mu-pass2').closest('.fg').style.display='';
   openM('m-user');
@@ -1318,7 +1336,6 @@ async function toggleUserActive(id){
 }
 async function delUser(id){
   if(!confirm('ยืนยันการลบผู้ใช้งาน?'))return;
-  users=getUsers();
   users=users.filter(u=>u.id!==id);
   saveUsers(users);
   await sbDeleteUser(id);
@@ -1399,8 +1416,6 @@ CREATE TABLE IF NOT EXISTS po_items (
 );
 
 -- 6. App Users (ผู้ใช้งานระบบ)
--- หมายเหตุ: ตารางนี้แยกจาก Supabase Auth
--- ใช้สำหรับจัดการสิทธิ์ภายในแอป
 CREATE TABLE IF NOT EXISTS app_users (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -1457,7 +1472,6 @@ CREATE TRIGGER trg_users BEFORE UPDATE ON
   EXECUTE FUNCTION _upd_at();
 
 -- 9. Seed default admin user
--- รหัสผ่าน: admin123 (เปลี่ยนหลัง deploy)
 INSERT INTO app_users
   (id, name, email, pass, role, dept, active, created_at)
 VALUES
@@ -1478,7 +1492,6 @@ async function sbReq(path,opts={}){
 async function syncAll(){
   if(!sbUrl||!sbKey)return;
   try{
-    // Sync core tables first — these must exist
     const[ls,its,ts,pos,pis]=await Promise.all([
       sbReq('locations?order=code.asc'),
       sbReq('items?order=created_at.asc'),
@@ -1500,7 +1513,6 @@ async function syncAll(){
     setConn('ok','เชื่อมต่อแล้ว');
     refreshAll();
 
-    // Sync app_users separately — optional table, won't break sync if missing
     try{
       const aus=await sbReq('app_users?order=created_at.asc');
       if(aus?.length){
@@ -1512,7 +1524,6 @@ async function syncAll(){
         }
       }
     }catch(ue){
-      // app_users table not yet created — show hint in settings only
       console.warn('app_users sync skipped:',ue.message);
       const hint=document.getElementById('set-alert');
       if(hint&&hint.innerHTML===''){
@@ -1564,6 +1575,17 @@ function isAdmin(){return currentUser&&currentUser.role==='admin';}
 
 /* ══ NAV ══ */
 function nav(name,el){
+  // Block non-admins from accessing settings via any route
+  if(name==='settings'&&!isAdmin()){
+    sa('g-alert','warn','🔒 เฉพาะ Admin เท่านั้นที่เข้าถึง Supabase Config ได้');
+    return;
+  }
+  // Block non-admins from accessing users via any route
+  if(name==='users'&&!isAdmin()){
+    sa('g-alert','warn','🔒 เฉพาะ Admin เท่านั้นที่เข้าถึงหน้าจัดการผู้ใช้ได้');
+    return;
+  }
+
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('active'));
   const sec=document.getElementById('sec-'+name);if(!sec)return;
@@ -1792,7 +1814,6 @@ function popItemSel(){
     const el=document.getElementById(id);
     if(el)el.innerHTML=items.map(i=>`<option value="${i.id}">${i.name} — ${getLoc(i.lid)} (คงเหลือ: ${i.qty} ${i.unit})</option>`).join('');
   });
-  // Pre-fill by person with current user name
   const rb=document.getElementById('recv-by');const ib=document.getElementById('issue-by');
   if(rb&&currentUser&&!rb.value)rb.value=currentUser.name;
   if(ib&&currentUser&&!ib.value)ib.value=currentUser.name;
@@ -1855,7 +1876,7 @@ function renderHist(q=''){
     </tr>`).join(''):`<tr><td colspan="8" class="empty"><div class="empty-ico">≡</div>ไม่พบรายการ</td></tr>`;
 }
 
-/* ══ PO — รองรับ EDIT & DELETE ══ */
+/* ══ PO ══ */
 function updBadge(){
   const n=poList.filter(p=>p.status==='รออนุมัติ').length;
   const b=document.getElementById('po-badge');
@@ -1939,7 +1960,6 @@ function openEditPO(id){
   document.getElementById('po-submit-btn').textContent='✓ บันทึกการแก้ไข';
   document.getElementById('po-cancel-edit-btn').style.display='';
   document.getElementById('po-c-alert').innerHTML='';
-  // rebuild rows
   document.getElementById('po-rows').innerHTML='';pri=0;
   po.rows.forEach(r=>{
     addPORow();
@@ -1948,7 +1968,6 @@ function openEditPO(id){
     ins[0].value=r.name;ins[1].value=r.qty;ins[2].value=r.unit;ins[3].value=r.price;
   });
   updPOT();
-  // switch to create tab
   poTab('po-c',document.querySelectorAll('.itab')[1]);
 }
 function cancelPOEdit(){
@@ -2013,7 +2032,6 @@ async function submitPO(){
   if(!ok||rows.length===0){sa('po-c-alert','err','กรุณากรอกรายการสินค้าให้ครบ');return;}
 
   if(editingPoId){
-    // UPDATE
     const idx=poList.findIndex(p=>p.id===editingPoId);
     if(idx>-1){
       poList[idx]={...poList[idx],req,sup,need:document.getElementById('po-need').value,note:document.getElementById('po-note').value.trim(),rows};
@@ -2030,7 +2048,6 @@ async function submitPO(){
     return;
   }
 
-  // CREATE NEW
   const po={id:`PO-${new Date().getFullYear()}-${String(np++).padStart(3,'0')}`,date:tod(),req,sup,need:document.getElementById('po-need').value,note:document.getElementById('po-note').value.trim(),status:'รออนุมัติ',rows};
   poList.push(po);
   const tot=rows.reduce((s,r)=>s+r.qty*r.price,0);
@@ -2043,8 +2060,8 @@ async function submitPO(){
 }
 
 /* ══ IMPORT EXCEL / CSV ══ */
-let impMode='add'; // 'add' | 'upsert' | 'replace'
-let impRows=[];    // parsed & analyzed rows ready for preview
+let impMode='add';
+let impRows=[];
 
 function openImport(){
   resetImport();
@@ -2071,7 +2088,6 @@ function setIMode(m){
   if(impRows.length)buildPreview();
 }
 
-/* Drag & Drop */
 function dzOver(e){e.preventDefault();document.getElementById('drop-zone').classList.add('drag-over');}
 function dzLeave(e){document.getElementById('drop-zone').classList.remove('drag-over');}
 function dzDrop(e){
@@ -2082,7 +2098,6 @@ function handleFileSelect(input){
   const f=input.files[0];if(f)processFile(f);
 }
 
-/* ── Parse file → impRows ── */
 function processFile(file){
   if(file.size>5*1024*1024){sa('imp-alert','err','ไฟล์ใหญ่เกิน 5MB');return;}
   const ext=file.name.split('.').pop().toLowerCase();
@@ -2094,7 +2109,6 @@ function processFile(file){
     try{
       let data;
       if(ext==='csv'){
-        // Parse CSV manually for better Thai support
         const text=e.target.result;
         data=csvToAoa(text);
       } else {
@@ -2125,7 +2139,6 @@ function csvToAoa(text){
   });
 }
 
-/* ── Column name mapping ── */
 const COL_MAP={
   id:       ['id','รหัส','รหัสสินค้า','code','sku'],
   name:     ['name','ชื่อ','ชื่อสินค้า','item','สินค้า'],
@@ -2148,7 +2161,6 @@ function resolveCol(headers,fieldCandidates){
 }
 
 function parseImportData(aoa,fname){
-  // Find header row (first non-empty row)
   let headerRowIdx=0;
   for(let i=0;i<Math.min(5,aoa.length);i++){
     if(aoa[i].some(c=>String(c).trim())){headerRowIdx=i;break;}
@@ -2156,7 +2168,6 @@ function parseImportData(aoa,fname){
   const headers=aoa[headerRowIdx].map(h=>String(h).trim());
   const dataRows=aoa.slice(headerRowIdx+1).filter(r=>r.some(c=>String(c).trim()));
 
-  // Map columns
   const colIdx={};
   for(const[field,candidates] of Object.entries(COL_MAP)){
     colIdx[field]=resolveCol(headers,candidates);
@@ -2167,7 +2178,6 @@ function parseImportData(aoa,fname){
     return;
   }
 
-  // Parse each row
   impRows=dataRows.map((r,i)=>{
     const get=(f,def='')=>{const idx=colIdx[f];return idx>-1?String(r[idx]??'').trim():def;};
     const id=(get('id')||`IMP-${String(i+1).padStart(3,'0')}`).toUpperCase().replace(/\s+/g,'');
@@ -2178,14 +2188,13 @@ function parseImportData(aoa,fname){
     const price=Math.max(0,parseFloat(get('price'))||0);
     const min=Math.max(0,parseInt(get('min'))||5);
     const locRaw=get('lid');
-    // Resolve location: match by id, code, or name
     const lid=resolveLocation(locRaw);
     const note=get('note');
     const errors=[];
     if(!id)errors.push('ไม่มีรหัส');
     if(!name)errors.push('ไม่มีชื่อสินค้า');
     return{rowNum:i+1,id,name,cat,qty,unit,price,min,lid,locRaw,note,errors};
-  }).filter(r=>r.name||r.id); // skip fully empty rows
+  }).filter(r=>r.name||r.id);
 
   if(!impRows.length){sa('imp-alert','err','ไม่พบข้อมูลในไฟล์');return;}
 
@@ -2213,7 +2222,7 @@ function analyzeRow(r){
   const exists=items.find(i=>i.id===r.id);
   if(!exists) return'new';
   if(impMode==='upsert') return'upd';
-  return'skip'; // add mode: duplicate → skip
+  return'skip';
 }
 
 function buildPreview(){
@@ -2221,7 +2230,6 @@ function buildPreview(){
   const counts={new:0,upd:0,skip:0,err:0};
   analyzed.forEach(r=>counts[r.status]=(counts[r.status]||0)+1);
 
-  // Stats bar
   const modeLabel={add:'เพิ่มเฉพาะใหม่',upsert:'เพิ่ม+อัปเดต',replace:'แทนที่ทั้งหมด'};
   document.getElementById('imp-stats').innerHTML=`
     <div class="imp-stat"><div class="imp-stat-val sv-new">${counts.new||0}</div><div class="imp-stat-lbl">เพิ่มใหม่</div></div>
@@ -2229,7 +2237,6 @@ function buildPreview(){
     <div class="imp-stat"><div class="imp-stat-val sv-skip">${counts.skip||0}</div><div class="imp-stat-lbl">ข้าม (ซ้ำ)</div></div>
     <div class="imp-stat"><div class="imp-stat-val sv-err">${counts.err||0}</div><div class="imp-stat-lbl">Error</div></div>`;
 
-  // Preview rows
   const statusLabel={new:'<span class="imp-row-badge rb-new">ใหม่</span>',upd:'<span class="imp-row-badge rb-upd">อัปเดต</span>',skip:'<span class="imp-row-badge rb-skip">ข้าม</span>',err:'<span class="imp-row-badge rb-err">Error</span>'};
   document.getElementById('imp-preview-tb').innerHTML=analyzed.map(r=>`
     <tr class="r-${r.status}">
@@ -2247,14 +2254,12 @@ function buildPreview(){
 
   document.getElementById('imp-row-count').textContent=`ทั้งหมด ${analyzed.length} แถว (${impMode==='replace'?'จะล้างข้อมูลเดิมทั้งหมดก่อน':'โหมด: '+modeLabel[impMode]})`;
 
-  // Disable confirm if all errors and nothing to do
   const hasAction=(counts.new||0)+(counts.upd||0)>0;
   document.getElementById('imp-confirm-btn').disabled=!hasAction;
   if(!hasAction) sa('imp-alert','warn','ไม่มีรายการที่จะนำเข้า — ตรวจสอบข้อมูลในไฟล์');
   else document.getElementById('imp-alert').innerHTML='';
 }
 
-/* ── Confirm Import ── */
 async function confirmImport(){
   const btn=document.getElementById('imp-confirm-btn');
   btn.disabled=true;btn.textContent='⏳ กำลังนำเข้า...';
@@ -2262,10 +2267,7 @@ async function confirmImport(){
   const toProcess=impRows.filter(r=>analyzeRow(r)!=='err'&&analyzeRow(r)!=='skip');
   let added=0,updated=0,failed=0;
 
-  if(impMode==='replace'){
-    // Clear all existing items (local only — Supabase handled per-item below)
-    items=[];
-  }
+  if(impMode==='replace'){items=[];}
 
   for(const r of toProcess){
     const status=impMode==='replace'?'new':analyzeRow(r);
@@ -2302,7 +2304,6 @@ async function confirmImport(){
   sa('g-alert',failed?'warn':'ok',msg,8000);
 }
 
-/* ── Download Template ── */
 function downloadTemplate(){
   const wb=XLSX.utils.book_new();
   const headers=['id','name','category','qty','unit','price','min_qty','location_id','note'];
@@ -2313,9 +2314,7 @@ function downloadTemplate(){
   ];
   const ws=XLSX.utils.aoa_to_sheet([headers,...sample]);
   ws['!cols']=[{wch:10},{wch:28},{wch:16},{wch:8},{wch:8},{wch:10},{wch:10},{wch:14},{wch:28}];
-  // Highlight header row style hint
   XLSX.utils.book_append_sheet(wb,ws,'สินค้า');
-  // Location reference sheet
   const locHeaders=['location_id (รหัส)','ชื่อ Location','อาคาร/ชั้น'];
   const locData=locs.map(l=>[l.code,l.name,l.floor||'']);
   const ws2=XLSX.utils.aoa_to_sheet([locHeaders,...locData]);
@@ -2323,7 +2322,6 @@ function downloadTemplate(){
   XLSX.utils.book_append_sheet(wb,ws2,'Location (อ้างอิง)');
   XLSX.writeFile(wb,`OfficeStock_Import_Template_${tod()}.xlsx`);
 }
-
 
 function popExpSel(){popCatLoc();}
 const cleanLoc=id=>getLoc(id).replace(/[^\w\s\u0E00-\u0E7F]/g,'').trim();
@@ -2392,7 +2390,7 @@ renderSql();
 document.getElementById('sb-url').value=sbUrl;
 document.getElementById('sb-key').value=sbKey;
 
-/* ══ CHECK AUTH ON LOAD (must be last — all functions & data must exist first) ══ */
+/* ══ CHECK AUTH ON LOAD ══ */
 (function(){
   const saved=sessionStorage.getItem('os_current');
   if(saved){
