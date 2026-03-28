@@ -426,7 +426,7 @@ textarea{resize:vertical;min-height:68px}
     <div class="auth-logo">
       <div class="auth-logo-ico">📦</div>
       <div>
-        <div class="auth-logo-name">OfficeStock</div>
+        <div class="auth-logo-name">OFFICESTOCK</div>
         <div class="auth-logo-tag">ระบบจัดการอุปกรณ์สำนักงาน</div>
       </div>
     </div>
@@ -450,7 +450,7 @@ textarea{resize:vertical;min-height:68px}
     <div class="auth-logo">
       <div class="auth-logo-ico">📦</div>
       <div>
-        <div class="auth-logo-name">OfficeStock</div>
+        <div class="auth-logo-name">OFFICESTOCK</div>
         <div class="auth-logo-tag">สร้างบัญชีใหม่</div>
       </div>
     </div>
@@ -501,7 +501,7 @@ textarea{resize:vertical;min-height:68px}
   <div class="sb-brand">
     <div class="sb-mark">
       <div class="sb-ico">📦</div>
-      <div><div class="sb-name">OfficeStock</div></div>
+      <div><div class="sb-name">OFFICESTOCK</div></div>
     </div>
     <div class="sb-tagline">ระบบจัดการอุปกรณ์สำนักงาน</div>
   </div>
@@ -620,12 +620,28 @@ textarea{resize:vertical;min-height:68px}
         <div class="card-h"><div class="card-t">↓ บันทึกรับสินค้าเข้าคลัง</div></div>
         <div class="card-b">
           <div id="recv-alert"></div>
-          <div class="mb13" style="display:grid;grid-template-columns:2fr 0.6fr;gap:13px">
-            <div class="fg"><label class="fl">สินค้า *</label><select id="recv-item"></select></div>
-            <div class="fg"><label class="fl">จำนวนที่รับ *</label><input type="number" id="recv-qty" min="1" value="1"></div>
-            <div class="fg"><label class="fl">ผู้รับ *</label><input id="recv-by" placeholder="ชื่อผู้รับ"></div>
-            <div class="fg"><label class="fl">เลขที่เอกสาร</label><input id="recv-ref" placeholder="DO-2024-001"></div>
-          </div>
+            <div class="mb13" style="display:grid;grid-template-columns:1fr 1.5fr 0.8fr;gap:13px">
+              <div class="fg">
+                <label class="fl">รหัสสินค้า *</label>
+                <input id="recv-item-id" placeholder="พิมพ์รหัส..." oninput="checkInvItem('recv')">
+              </div>
+              <div class="fg">
+                <label class="fl">ชื่อสินค้า</label>
+                <input id="recv-item-name" placeholder="ชื่อจะแสดงอัตโนมัติ..." readonly style="opacity:0.7; cursor:not-allowed;">
+              </div>
+              <div class="fg">
+                <label class="fl">จำนวนที่รับ *</label>
+                <input type="number" id="recv-qty" min="1" value="1">
+              </div>
+              <div class="fg">
+                <label class="fl">ผู้รับ *</label>
+                <input id="recv-by" placeholder="ชื่อผู้รับ">
+              </div>
+              <div class="fg">
+                <label class="fl">เลขที่เอกสาร</label>
+                <input id="recv-ref" placeholder="DO-2024-001">
+              </div>
+            </div>
           <div class="fg mb13"><label class="fl">หมายเหตุ</label><textarea id="recv-note" placeholder="หมายเหตุเพิ่มเติม..."></textarea></div>
           <button class="btn btn-ok" onclick="doReceive()">✓ บันทึกรับสินค้า</button>
         </div>
@@ -638,12 +654,28 @@ textarea{resize:vertical;min-height:68px}
         <div class="card-h"><div class="card-t">↑ บันทึกเบิกสินค้าออก</div></div>
         <div class="card-b">
           <div id="issue-alert"></div>
-          <div class="mb13" style="display:grid;grid-template-columns:2fr 0.6fr;gap:13px">
-            <div class="fg"><label class="fl">สินค้า *</label><select id="issue-item"></select></div>
-            <div class="fg"><label class="fl">จำนวนที่เบิก *</label><input type="number" id="issue-qty" min="1" value="1"></div>
-            <div class="fg"><label class="fl">แผนก / ผู้เบิก *</label><input id="issue-by" placeholder="ชื่อแผนกหรือผู้เบิก"></div>
-            <div class="fg"><label class="fl">วัตถุประสงค์</label><input id="issue-pur" placeholder="เช่น ประชุม Q1"></div>
-          </div>
+            <div class="mb13" style="display:grid;grid-template-columns:1fr 1.5fr 0.8fr;gap:13px">
+              <div class="fg">
+                <label class="fl">รหัสสินค้า *</label>
+                <input id="issue-item-id" placeholder="พิมพ์รหัส..." oninput="checkInvItem('issue')">
+              </div>
+              <div class="fg">
+                <label class="fl">ชื่อสินค้า</label>
+                <input id="issue-item-name" placeholder="ชื่อจะแสดงอัตโนมัติ..." readonly style="opacity:0.7; cursor:not-allowed;">
+              </div>
+              <div class="fg">
+                <label class="fl">จำนวนที่เบิก *</label>
+                <input type="number" id="issue-qty" min="1" value="1">
+              </div>
+              <div class="fg">
+                <label class="fl">แผนก / ผู้เบิก *</label>
+                <input id="issue-by" placeholder="ชื่อแผนกหรือผู้เบิก">
+              </div>
+              <div class="fg">
+                <label class="fl">วัตถุประสงค์</label>
+                <input id="issue-pur" placeholder="เช่น ประชุม Q1">
+              </div>
+            </div>
           <div class="fg mb13"><label class="fl">หมายเหตุ</label><textarea id="issue-note" placeholder="หมายเหตุเพิ่มเติม..."></textarea></div>
           <button class="btn btn-bad" onclick="doIssue()">↑ บันทึกเบิกสินค้า</button>
         </div>
@@ -701,7 +733,7 @@ textarea{resize:vertical;min-height:68px}
               <div class="fg"><label class="fl">หมายเหตุ</label><input id="po-note" placeholder="หมายเหตุ..."></div>
             </div>
             <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--t3);text-transform:uppercase;margin-bottom:7px">รายการสินค้า</div>
-            <table class="po-tbl"><thead><tr><th style="width:35%">ชื่อสินค้า</th><th style="width:12%">จำนวน</th><th style="width:12%">หน่วย</th><th style="width:17%">ราคา/หน่วย (฿)</th><th style="width:17%">รวม (฿)</th><th style="width:7%"></th></tr></thead>
+            <table class="po-tbl"><thead><tr><th style="width:15%">รหัสสินค้า</th><th style="width:35%">ชื่อสินค้า</th><th style="width:12%">จำนวน</th><th style="width:12%">หน่วย</th><th style="width:17%">ราคา/หน่วย (฿)</th><th style="width:17%">รวม (฿)</th><th style="width:7%"></th></tr></thead>
             <tbody id="po-rows"></tbody></table>
             <div class="flex mt8"><button class="btn btn-ghost btn-xs" onclick="addPORow()">＋ เพิ่มรายการ</button></div>
             <div style="text-align:right;margin-top:14px;padding-top:13px;border-top:1px solid var(--bd)">
@@ -1596,7 +1628,7 @@ function nav(name,el){
   if(name==='dashboard')renderDash();
   if(name==='inventory'){popCatLoc();renderInv();}
   if(name==='locations')renderLocs();
-  if(name==='receive'||name==='issue')popItemSel();
+  if(name==='receive'||name==='issue');
   if(name==='history')renderHist();
   if(name==='po'){renderPO();}
   if(name==='users'){
@@ -1606,7 +1638,7 @@ function nav(name,el){
   if(name==='export')popExpSel();
   closeUserMenu();
 }
-function refreshAll(){renderDash();renderInv();renderLocs();popItemSel();popCatLoc();renderHist();renderPO();updBadge();}
+function refreshAll(){renderDash();renderInv();renderLocs();popCatLoc();renderHist();renderPO();updBadge();}
 
 /* ══ DASHBOARD ══ */
 function renderDash(){
@@ -1670,6 +1702,19 @@ function renderInv(q=''){
 function filterInv(q){renderInv(q);}
 
 /* ══ ITEM MODAL ══ */
+function checkItem(type) {
+  const idInput = document.getElementById(type + '-item-id').value.trim().toUpperCase();
+  const nameDiv = document.getElementById(type + '-item-name');
+  
+  if (!idInput) { nameDiv.innerHTML = ''; return; }
+
+  const it = items.find(i => i.id.toUpperCase() === idInput);
+  if (it) {
+    nameDiv.innerHTML = `<span style="color:var(--green)">✓ ${it.name}</span> <span class="dim" style="font-weight:400">(คงเหลือ: ${it.qty} ${it.unit} | Location: ${getLoc(it.lid)})</span>`;
+  } else {
+    nameDiv.innerHTML = `<span style="color:var(--red)">✕ ไม่พบรหัสสินค้านี้</span>`;
+  }
+}
 function openAddItem(){
   editingItemId=null;
   ['ai-id','ai-name','ai-unit','ai-note'].forEach(id=>document.getElementById(id).value='');
@@ -1754,7 +1799,7 @@ async function updateItem(){
     catch(e){items[idx]=old;let msg=e.message;try{const p=JSON.parse(msg);msg=p.message||msg;}catch(_){}sa('m-item-alert','err','แก้ไขไม่สำเร็จ: '+msg);btn.disabled=false;btn.textContent='✓ บันทึกการแก้ไข';return;}
   }
   btn.disabled=false;btn.textContent='✓ บันทึกการแก้ไข';
-  closeM('m-item');renderInv();renderDash();popItemSel();popCatLoc();
+  closeM('m-item');renderInv();renderDash();popCatLoc();
   sa('g-alert','ok',`✓ แก้ไขสินค้า "${name}" เรียบร้อยแล้ว`);
 }
 async function delItem(id){
@@ -1808,40 +1853,48 @@ async function delLoc(id){
   renderLocs();popCatLoc();document.getElementById('loc-detail').style.display='none';
 }
 
-/* ══ RECEIVE / ISSUE ══ */
-function popItemSel(){
-  ['recv-item','issue-item'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el)el.innerHTML=items.map(i=>`<option value="${i.id}">${i.name} — ${getLoc(i.lid)} (คงเหลือ: ${i.qty} ${i.unit})</option>`).join('');
-  });
-  const rb=document.getElementById('recv-by');const ib=document.getElementById('issue-by');
-  if(rb&&currentUser&&!rb.value)rb.value=currentUser.name;
-  if(ib&&currentUser&&!ib.value)ib.value=currentUser.name;
-}
+
 async function doReceive(){
-  const id=document.getElementById('recv-item').value;
-  const qty=parseInt(document.getElementById('recv-qty').value);
-  const by=document.getElementById('recv-by').value.trim()||currentUser?.name||'ไม่ระบุ';
-  const ref=document.getElementById('recv-ref').value.trim();
-  const note=document.getElementById('recv-note').value.trim();
+  // เปลี่ยนวิธีดึงค่า id
+  const idRaw = document.getElementById('recv-item-id').value.trim().toUpperCase();
+  const it = items.find(i => i.id.toUpperCase() === idRaw);
+  
+  // เช็คว่ามีสินค้าไหม
+  if(!it){ sa('recv-alert','warn','กรุณาระบุรหัสสินค้าให้ถูกต้อง'); return; }
+  
+  const id = it.id;
+  const qty = parseInt(document.getElementById('recv-qty').value);
+  const by = document.getElementById('recv-by').value.trim()||currentUser?.name||'ไม่ระบุ';
+  const ref = document.getElementById('recv-ref').value.trim();
+  const note = document.getElementById('recv-note').value.trim();
+  
   if(!qty||qty<1){sa('recv-alert','warn','กรุณากรอกจำนวน');return;}
-  const it=items.find(i=>i.id===id);
+
   it.qty+=qty;
   if(sbUrl&&sbKey)await sbReq(`items?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({qty:it.qty})});
   const t={id:'T'+String(nt++).padStart(3,'0'),date:now(),type:'รับสินค้า',iid:id,iname:it.name,lid:it.lid,qty,by,ref,note};
   txns.push(t);
   if(sbUrl&&sbKey)await sbReq('transactions',{method:'POST',body:JSON.stringify({id:t.id,date:t.date,type:'รับสินค้า',item_id:id,item_name:it.name,location_id:it.lid||null,qty,by_person:by,ref,note})});
   sa('recv-alert','ok',`✓ รับ "${it.name}" ${qty} ${it.unit} ที่ ${getLoc(it.lid)} (คงเหลือ: ${it.qty})`);
-  document.getElementById('recv-qty').value=1;document.getElementById('recv-ref').value='';document.getElementById('recv-note').value='';
-  popItemSel();updBadge();
+  // document.getElementById('recv-qty').value=1;document.getElementById('recv-ref').value='';document.getElementById('recv-note').value='';
+  // popItemSel();updBadge();
+  document.getElementById('recv-item-id').value = '';
+  document.getElementById('recv-item-name').value = '';
 }
 async function doIssue(){
-  const id=document.getElementById('issue-item').value;
-  const qty=parseInt(document.getElementById('issue-qty').value);
-  const by=document.getElementById('issue-by').value.trim()||currentUser?.name||'ไม่ระบุ';
-  const pur=document.getElementById('issue-pur').value.trim();
-  const note=document.getElementById('issue-note').value.trim();
-  const it=items.find(i=>i.id===id);
+  // เปลี่ยนวิธีดึงค่า id
+  const idRaw = document.getElementById('issue-item-id').value.trim().toUpperCase();
+  const it = items.find(i => i.id.toUpperCase() === idRaw);
+  
+  // เช็คว่ามีสินค้าไหม
+  if(!it){ sa('issue-alert','warn','กรุณาระบุรหัสสินค้าให้ถูกต้อง'); return; }
+
+  const id = it.id;
+  const qty = parseInt(document.getElementById('issue-qty').value);
+  const by = document.getElementById('issue-by').value.trim()||currentUser?.name||'ไม่ระบุ';
+  const pur = document.getElementById('issue-pur').value.trim();
+  const note = document.getElementById('issue-note').value.trim();
+  
   if(!qty||qty<1){sa('issue-alert','warn','กรุณากรอกจำนวน');return;}
   if(qty>it.qty){sa('issue-alert','err',`✕ สินค้าไม่พอ! คงเหลือเพียง ${it.qty} ${it.unit}`);return;}
   it.qty-=qty;
@@ -1850,8 +1903,33 @@ async function doIssue(){
   txns.push(t);
   if(sbUrl&&sbKey)await sbReq('transactions',{method:'POST',body:JSON.stringify({id:t.id,date:t.date,type:'เบิกสินค้า',item_id:id,item_name:it.name,location_id:it.lid||null,qty,by_person:by,ref:pur,note})});
   sa('issue-alert','ok',`✓ เบิก "${it.name}" ${qty} ${it.unit} จาก ${getLoc(it.lid)} (คงเหลือ: ${it.qty})`);
-  document.getElementById('issue-qty').value=1;document.getElementById('issue-pur').value='';document.getElementById('issue-note').value='';
-  popItemSel();
+  // document.getElementById('issue-qty').value=1;document.getElementById('issue-pur').value='';document.getElementById('issue-note').value='';
+  // popItemSel();
+  document.getElementById('issue-item-id').value = '';
+  document.getElementById('issue-item-name').value = '';
+}
+
+function checkInvItem(type) {
+  const idInput = document.getElementById(type + '-item-id').value.trim().toUpperCase();
+  const nameInput = document.getElementById(type + '-item-name');
+
+  if (!idInput) { 
+    nameInput.value = ''; 
+    nameInput.style.color = '';
+    return; 
+  }
+
+  const it = items.find(i => i.id.toUpperCase() === idInput);
+  
+  if (it) {
+    nameInput.value = it.name + ` (คงเหลือ: ${it.qty} ${it.unit})`;
+    nameInput.style.color = 'var(--green)';
+    nameInput.style.fontWeight = '600';
+  } else {
+    nameInput.value = '✕ ไม่พบรหัสสินค้านี้';
+    nameInput.style.color = 'var(--red)';
+    nameInput.style.fontWeight = '400';
+  }
 }
 
 /* ══ HISTORY ══ */
@@ -1996,13 +2074,53 @@ function initPOC(){document.getElementById('po-rows').innerHTML='';pri=0;addPORo
 function addPORow(){
   const i=++pri;
   const tr=document.createElement('tr');tr.id=`pr${i}`;
-  tr.innerHTML=`<td><input placeholder="ชื่อสินค้า" oninput="updPOT()"></td>
-    <td><input type="number" min="1" value="1" oninput="updPOT()"></td>
-    <td><input placeholder="หน่วย" value="อัน"></td>
-    <td><input type="number" min="0" step="0.01" value="0" oninput="updPOT()"></td>
+  tr.innerHTML=`
+    <td>
+      <input id="poid${i}" placeholder="รหัสสินค้า" oninput="checkPOItem(${i}); updPOT()">
+    </td>
+    <td>
+      <input id="poname${i}" placeholder="ชื่อสินค้า" readonly style="background-color: var(--n950); color: var(--n700); cursor: not-allowed; border-color: transparent;">
+    </td>
+    <td><input id="poqty${i}" type="number" min="1" value="1" oninput="updPOT()"></td>
+    <td><input id="pounit${i}" placeholder="หน่วย" value="อัน"></td>
+    <td><input id="poprice${i}" type="number" min="0" step="0.01" value="0" oninput="updPOT()"></td>
     <td class="mono fw7" id="psub${i}" style="color:var(--gold)">฿0.00</td>
-    <td><button onclick="document.getElementById('pr${i}').remove();updPOT()" style="background:none;border:none;cursor:pointer;color:var(--tdim);font-size:15px;transition:color .1s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--tdim)'">✕</button></td>`;
+    <td><button onclick="document.getElementById('pr${i}').remove();updPOT()" style="background:none;border:none;cursor:pointer;color:var(--tdim);font-size:15px;">✕</button></td>`;
   document.getElementById('po-rows').appendChild(tr);
+}
+
+// เพิ่มฟังก์ชันนี้ต่อท้าย addPORow() ทันที
+function checkPOItem(idx) {
+  const idInput = document.getElementById(`poid${idx}`).value.trim().toUpperCase();
+  const nameInput = document.getElementById(`poname${idx}`);
+  const unitInput = document.getElementById(`pounit${idx}`);
+  const priceInput = document.getElementById(`poprice${idx}`);
+
+  // ถ้าช่องรหัสสินค้าว่างเปล่า ให้เคลียร์ช่องชื่อสินค้า
+  if (!idInput) { 
+    nameInput.value = ''; 
+    nameInput.style.color = 'var(--n700)';
+    return; 
+  }
+
+  // ค้นหาสินค้าจาก Array
+  const it = items.find(i => i.id.toUpperCase() === idInput);
+  
+  if (it) {
+    // ถ้ารหัสถูกต้อง -> แสดงชื่อสินค้าสีเขียว
+    nameInput.value = it.name;
+    nameInput.style.color = 'var(--green)';
+    nameInput.style.fontWeight = '600';
+    
+    // ดึงหน่วยและราคามาเติมให้อัตโนมัติ (ช่วยลดเวลาพิมพ์)
+    if(unitInput.value === 'อัน' || unitInput.value === '') unitInput.value = it.unit;
+    if(priceInput.value === '0' || priceInput.value === '') priceInput.value = it.price;
+  } else {
+    // ถ้ารหัสไม่ถูกต้อง -> แจ้งเตือนสีแดงในช่องนั้นเลย
+    nameInput.value = '✕ ไม่พบรหัสสินค้านี้';
+    nameInput.style.color = 'var(--red)';
+    nameInput.style.fontWeight = '400';
+  }
 }
 function updPOT(){
   let tot=0;
@@ -2024,7 +2142,8 @@ async function submitPO(){
   const rows=[];let ok=true;
   document.querySelectorAll('#po-rows tr').forEach(tr=>{
     const ins=tr.querySelectorAll('input');
-    const name=ins[0]?.value.trim(),qty=parseInt(ins[1]?.value)||0;
+    const name = tr.querySelector(`input[id^="poname"]`).value;
+    const qty = parseInt(tr.querySelector(`input[id^="poqty"]`).value) || 0;
     const unit=ins[2]?.value.trim()||'อัน',price=parseFloat(ins[3]?.value)||0;
     if(!name||qty<1){ok=false;return;}
     rows.push({name,qty,unit,price});
@@ -2299,7 +2418,7 @@ async function confirmImport(){
 
   btn.disabled=false;btn.textContent='✓ นำเข้าข้อมูล';
   closeImport();
-  renderInv();renderDash();popCatLoc();popItemSel();
+  renderInv();renderDash();popCatLoc();
   const msg=`✓ Import เสร็จสิ้น — เพิ่มใหม่ ${added} รายการ${updated?` · อัปเดต ${updated} รายการ`:''}${failed?` · ล้มเหลว ${failed} รายการ`:''}`;
   sa('g-alert',failed?'warn':'ok',msg,8000);
 }
