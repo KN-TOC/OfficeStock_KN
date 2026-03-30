@@ -408,6 +408,34 @@ textarea{resize:vertical;min-height:68px}
 .light-mode .btn-ghost:hover{background:rgba(0,0,0,.08);color:#0f172a}
 .light-mode .user-row{background:white}
 .light-mode .sbp{background:var(--n850)}
+
+@media (max-width: 480px) {
+  .auth-box {
+    padding: 24px 20px 20px;
+    border-radius: 16px;
+  }
+  .auth-logo-name { font-size: 22px; }
+  .auth-title { font-size: 18px; }
+  
+  /* Fix iOS Auto-Zoom (font ต้อง >= 16px) */
+  .auth-inp {
+    font-size: 16px;
+    padding: 12px 13px;
+  }
+  
+  /* Fix role button grid บนจอแคบ */
+  .auth-role-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  
+  /* Fix Keyboard popup บน iOS */
+  #auth-screen {
+    align-items: flex-start;
+    padding-top: 40px;
+    overflow-y: auto;
+  }
+}
 </style>
 </head>
 <body>
@@ -1122,12 +1150,34 @@ function quickLogin(email,pass){
   doLogin();
 }
 
-function doLogin(){
+async function doLogin(){
   const email=document.getElementById('l-email').value.trim().toLowerCase();
   const pass=document.getElementById('l-pass').value;
+  const btn=document.getElementById('login-btn');
   if(!email||!pass){authAlert('login-alert','warn','กรุณากรอกอีเมลและรหัสผ่าน');return;}
-  users=getUsers();
+
+  btn.disabled=true; btn.textContent='⏳ กำลังตรวจสอบ...';
+
+  // ถ้ามี Supabase → ดึง Users จาก DB ก่อนเสมอ
+  if(sbUrl&&sbKey){
+    try{
+      const aus=await sbReq('app_users?order=created_at.asc');
+      if(aus?.length){
+        const merged=aus.map(r=>({
+          id:r.id,name:r.name,email:r.email,pass:r.pass,
+          role:r.role,dept:r.dept||'',created:r.created_at,active:r.active!==false
+        }));
+        saveUsers(merged);
+        users=merged;
+      }
+    }catch(e){
+      console.warn('Supabase fetch failed, fallback to localStorage:',e.message);
+    }
+  }
+
   const u=users.find(u=>u.email.toLowerCase()===email&&u.pass===pass&&u.active!==false);
+  btn.disabled=false; btn.textContent='เข้าสู่ระบบ →';
+
   if(!u){authAlert('login-alert','err','อีเมลหรือรหัสผ่านไม่ถูกต้อง');return;}
   currentUser=u;
   sessionStorage.setItem('os_current',JSON.stringify(u));
