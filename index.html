@@ -442,7 +442,7 @@ textarea{resize:vertical;min-height:68px}
       <input class="auth-inp" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password">
     </div>
     <button class="auth-btn" id="login-btn" onclick="doLogin()">เข้าสู่ระบบ →</button>
-    <div class="auth-switch">ยังไม่มีบัญชี? <a onclick="showRegister()">สมัครสมาชิก</a></div>
+    <div class="auth-switch">ยังไม่มีบัญชี? โปรดติดต่อผู้ดูแลระบบ</div>
   </div>
 
   <!-- REGISTER PANEL -->
@@ -639,7 +639,7 @@ textarea{resize:vertical;min-height:68px}
               </div>
               <div class="fg">
                 <label class="fl">เลขที่เอกสาร</label>
-                <input id="recv-ref" placeholder="DO-2026-001">
+                <input id="recv-ref" placeholder="DO-2024-001">
               </div>
             </div>
           <div class="fg mb13"><label class="fl">หมายเหตุ</label><textarea id="recv-note" placeholder="หมายเหตุเพิ่มเติม..."></textarea></div>
@@ -2123,16 +2123,27 @@ function checkPOItem(idx) {
   }
 }
 function updPOT(){
-  let tot=0;
-  document.querySelectorAll('#po-rows tr').forEach(tr=>{
-    const ins=tr.querySelectorAll('input');
-    const qty=parseFloat(ins[1]?.value)||0,price=parseFloat(ins[3]?.value)||0,sub=qty*price;
-    tot+=sub;
-    const sid=tr.id?.replace('pr','');
-    const sel=document.getElementById(`psub${sid}`);
-    if(sel)sel.textContent='฿'+fmt(sub);
+  let total = 0;
+  // ดึงทุกแถวที่มีในตาราง PO
+  const rows = document.querySelectorAll('#po-rows tr');
+  
+  rows.forEach(tr => {
+    const idx = tr.id.replace('pr', ''); // ดึงตัวเลข index จาก id แถว เช่น pr1 -> 1
+    
+    // ดึงค่าจาก ID โดยตรง
+    const qty = parseFloat(document.getElementById(`poqty${idx}`).value) || 0;
+    const price = parseFloat(document.getElementById(`poprice${idx}`).value) || 0;
+    
+    const sub = qty * price;
+    total += sub;
+    
+    // แสดงยอดรวมรายบรรทัด (Sub-total)
+    const subEl = document.getElementById(`psub${idx}`);
+    if(subEl) subEl.innerText = `฿${sub.toLocaleString(undefined, {minimumFractionDigits:2})}`;
   });
-  document.getElementById('po-total').textContent='฿'+fmt(tot);
+  
+  // แสดงยอดรวมสุทธิท้ายตาราง
+  document.getElementById('po-total').innerText = `฿${total.toLocaleString(undefined, {minimumFractionDigits:2})}`;
 }
 
 async function submitPO(){
