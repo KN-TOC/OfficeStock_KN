@@ -1152,7 +1152,7 @@ function quickLogin(email,pass){
 
 async function doLogin(){
   const email=document.getElementById('l-email').value.trim().toLowerCase();
-  const pass=document.getElementById('l-pass').value;
+  const pass=document.getElementById('l-pass').value.trim();
   const btn=document.getElementById('login-btn');
   if(!email||!pass){authAlert('login-alert','warn','กรุณากรอกอีเมลและรหัสผ่าน');return;}
 
