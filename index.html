@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+  <script src="config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OfficeStock — ระบบจัดการอุปกรณ์สำนักงาน</title>
@@ -1063,8 +1064,8 @@ let items=[];
 let txns=[];
 let poList=[];
   
-let sbUrl=localStorage.getItem('sb_url')||'';
-let sbKey=localStorage.getItem('sb_key')||'';
+let sbUrl=localStorage.getItem('sb_url')||(typeof APP_CONFIG!=='undefined'?APP_CONFIG.supabaseUrl:'')||'';
+let sbKey=localStorage.getItem('sb_key')||(typeof APP_CONFIG!=='undefined'?APP_CONFIG.supabaseKey:'')||'';
 let ni=7,nt=6,np=3,nl=4;
 let editingItemId=null;
 let editingPoId=null;
