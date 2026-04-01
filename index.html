@@ -1090,6 +1090,43 @@ textarea{resize:vertical;min-height:68px}
               <button class="btn btn-ghost" id="po-cancel-edit-btn" style="display:none" onclick="cancelPOEdit()">ยกเลิกการแก้ไข</button>
             </div>
           </div>
+        </div>    <!-- VIEW/EDIT PO MODAL -->
+    <div class="mbg" id="m-po-view">
+      <div class="modal modal-lg">
+        <div class="mh">
+          <span class="mt" id="m-po-v-title">รายละเอียดใบสั่งซื้อ</span>
+          <button class="mc" onclick="closeM('m-po-view')">✕</button>
+        </div>
+        <div class="mb">
+          <div class="gr3 mb16">
+            <div class="fg"><label class="fl">เลขที่ PO</label><div class="mono fw7" id="v-po-id">-</div></div>
+            <div class="fg"><label class="fl">วันที่</label><div id="v-po-date">-</div></div>
+            <div class="fg"><label class="fl">สถานะ</label><div id="v-po-status">-</div></div>
+            <div class="fg"><label class="fl">ผู้ขอจัดซื้อ</label><div id="v-po-req">-</div></div>
+            <div class="fg"><label class="fl">Supplier</label><div id="v-po-sup">-</div></div>
+            <div class="fg"><label class="fl">วันที่ต้องการ</label><div id="v-po-need">-</div></div>
+          </div>
+          <div class="card">
+            <div class="tw">
+              <table class="po-tbl">
+                <thead>
+                  <tr>
+                    <th style="width:15%">รหัสสินค้า</th>
+                    <th style="width:35%">ชื่อสินค้า</th>
+                    <th style="width:12%">จำนวน</th>
+                    <th style="width:12%">หน่วย</th>
+                    <th style="width:13%">ราคา/หน่วย</th>
+                    <th style="width:13%">รวม (฿)</th>
+                  </tr>
+                </thead>
+                <tbody id="v-po-rows"></tbody>
+              </table>
+            </div>
+          </div>
+          <div style="text-align:right; margin-top:14px">
+            <div class="dim tiny">ยอดรวมสุทธิ</div>
+            <div style="font-size:24px; font-weight:700; color:var(--gold)" id="v-po-total">฿0.00</div>
+          </div>
         </div>
       </div>
     </div>
@@ -2084,11 +2121,29 @@ function renderPO(){
   return`<tr><td class="mono fw7" style="color:var(--cyan);font-size:12px">${po.id}</td><td class="mono dim" style="font-size:11px">${po.date}</td><td style="font-weight:600">${po.req}</td><td class="dim">${po.sup}</td><td class="dim">${po.rows.length} รายการ</td><td class="mono fw7" style="color:var(--gold)">฿${fmt(tot)}</td><td><span class="badge ${sc}">${po.status}</span></td><td><div class="act-btns"><button class="btn btn-ghost btn-xs" onclick="viewPO('${po.id}')">ดู</button>${canEdit?`<button class="btn btn-edit btn-xs" onclick="openEditPO('${po.id}')">✎</button>`:''}${isAdmin()?`<button class="btn btn-bad btn-xs" onclick="delPO('${po.id}')">✕</button>`:''}</div></td></tr>`;}).join('')||`<tr><td colspan="8" class="empty"><div class="empty-ico">◻</div>ไม่มีใบสั่งซื้อ</td></tr>`;
 }
 function viewPO(id){
-  const po=poList.find(p=>p.id===id);const tot=po.rows.reduce((s,r)=>s+r.qty*r.price,0);const sc=po.status==='อนุมัติแล้ว'?'b-appr':po.status==='ไม่อนุมัติ'?'b-rej':'b-pend';
+  const po=poList.find(p=>p.id===id);
+  const tot=po.rows.reduce((s,r)=>s+r.qty*r.price,0);
+  const sc=po.status==='อนุมัติแล้ว'?'b-appr':po.status==='ไม่อนุมัติ'?'b-rej':'b-pend';
   document.getElementById('po-m-title').textContent=`◻ ${po.id}`;
-  document.getElementById('po-m-body').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px;font-size:13px"><div><div class="dim tiny">เลข PO</div><div class="mono fw7" style="color:var(--cyan)">${po.id}</div></div><div><div class="dim tiny">สถานะ</div><span class="badge ${sc}">${po.status}</span></div><div><div class="dim tiny">ผู้ขอ</div><b>${po.req}</b></div><div><div class="dim tiny">Supplier</div>${po.sup}</div><div><div class="dim tiny">วันที่สร้าง</div>${po.date}</div><div><div class="dim tiny">วันที่ต้องการ</div>${po.need||'—'}</div>${po.note?`<div style="grid-column:1/-1"><div class="dim tiny">หมายเหตุ</div>${po.note}</div>`:''}</div><table class="po-tbl"><thead><tr><th>สินค้า</th><th>จำนวน</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>รวม</th></tr></thead><tbody>${po.rows.map(r=>`<tr><td>${r.name}</td><td>${r.qty}</td><td class="dim">${r.unit}</td><td class="mono">฿${fmt(r.price)}</td><td class="mono fw7" style="color:var(--gold)">฿${fmt(r.qty*r.price)}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:700;padding:10px;font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:var(--t3)">ยอดรวมทั้งสิ้น</td><td class="mono" style="font-size:18px;font-weight:800;color:var(--gold);padding:10px">฿${fmt(tot)}</td></tr></tfoot></table>`;
-  const f=document.getElementById('po-m-foot');f.innerHTML=`<button class="btn btn-ghost" onclick="closeM('m-po')">ปิด</button>`;
-  if(po.status==='รออนุมัติ'){f.innerHTML+=`<button class="btn btn-edit btn-sm" onclick="closeM('m-po');openEditPO('${po.id}')">✎ แก้ไข</button>`;f.innerHTML+=`<button class="btn btn-bad" onclick="chgPO('${po.id}','ไม่อนุมัติ')">✕ ไม่อนุมัติ</button><button class="btn btn-ok" onclick="chgPO('${po.id}','อนุมัติแล้ว')">✓ อนุมัติ</button>`;}
+  document.getElementById('po-m-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px;font-size:13px">
+      <div><div class="dim tiny">เลข PO</div><div class="mono fw7" style="color:var(--cyan)">${po.id}</div></div>
+      <div><div class="dim tiny">สถานะ</div><span class="badge ${sc}">${po.status}</span></div>
+      <div><div class="dim tiny">ผู้ขอ</div><b>${po.req}</b></div>
+      <div><div class="dim tiny">Supplier</div>${po.sup}</div>
+      <div><div class="dim tiny">วันที่สร้าง</div>${po.date}</div>
+      <div><div class="dim tiny">วันที่ต้องการ</div>${po.need||'—'}</div>
+      ${po.note?`<div style="grid-column:1/-1"><div class="dim tiny">หมายเหตุ</div>${po.note}</div>`:''}
+    </div>
+    <table class="po-tbl"><thead><tr><th>รหัสสินค้า</th><th>สินค้า</th><th>จำนวน</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>รวม</th></tr></thead>
+    <tbody>${po.rows.map(r=>`<tr><td>${r.id}</td><td>${r.name}</td><td>${r.qty}</td><td class="dim">${r.unit}</td><td class="mono">฿${fmt(r.price)}</td><td class="mono fw7" style="color:var(--gold)">฿${fmt(r.qty*r.price)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td colspan="5" style="text-align:right;font-weight:700;padding:10px;font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:var(--t3)">ยอดรวมทั้งสิ้น</td><td class="mono" style="font-size:18px;font-weight:800;color:var(--gold);padding:10px">฿${fmt(tot)}</td></tr></tfoot></table>`;
+  const f=document.getElementById('po-m-foot');
+  f.innerHTML=`<button class="btn btn-ghost" onclick="closeM('m-po')">ปิด</button>`;
+  if(po.status==='รออนุมัติ'){
+    f.innerHTML+=`<button class="btn btn-edit btn-sm" onclick="closeM('m-po');openEditPO('${po.id}')">✎ แก้ไข PO</button>`;
+    f.innerHTML+=`<button class="btn btn-bad" onclick="chgPO('${po.id}','ไม่อนุมัติ')">✕ ไม่อนุมัติ</button><button class="btn btn-ok" onclick="chgPO('${po.id}','อนุมัติแล้ว')">✓ อนุมัติ</button>`;
+  }
   if(isAdmin()&&po.status!=='รออนุมัติ')f.innerHTML+=`<button class="btn btn-bad btn-sm" onclick="closeM('m-po');delPO('${po.id}')">✕ ลบ PO</button>`;
   openM('m-po');
 }
@@ -2099,9 +2154,20 @@ function openEditPO(id){
   document.getElementById('po-req').value=po.req;document.getElementById('po-sup').value=po.sup;document.getElementById('po-need').value=po.need||'';document.getElementById('po-note').value=po.note||'';
   document.getElementById('po-submit-btn').textContent='✓ บันทึกการแก้ไข';document.getElementById('po-cancel-edit-btn').style.display='';document.getElementById('po-c-alert').innerHTML='';
   document.getElementById('po-rows').innerHTML='';pri=0;
-  po.rows.forEach(r=>{addPORow();const tr=document.getElementById(`pr${pri}`);const ins=tr.querySelectorAll('input');ins[0].value=r.name;ins[1].value=r.qty;ins[2].value=r.unit;ins[3].value=r.price;});updPOT();
+  po.rows.forEach(r=>{
+    addPORow();
+    const idx=pri;
+    document.getElementById(`poid${idx}`).value=r.id||'';
+    document.getElementById(`poname${idx}`).value=r.name;
+    document.getElementById(`poname${idx}`).style.color='var(--green)';
+    document.getElementById(`poname${idx}`).style.fontWeight='600';
+    document.getElementById(`poqty${idx}`).value=r.qty;
+    document.getElementById(`pounit${idx}`).value=r.unit;
+    document.getElementById(`poprice${idx}`).value=r.price;
+  });updPOT();
   poTab('po-c',document.querySelectorAll('.itab')[1]);
 }
+
 function cancelPOEdit(){editingPoId=null;document.getElementById('po-c-title').textContent='สร้างใบสั่งซื้อใหม่';document.getElementById('po-submit-btn').textContent='◻ บันทึกใบสั่งซื้อ';document.getElementById('po-cancel-edit-btn').style.display='none';initPOC();poTab('po-l',document.querySelectorAll('.itab')[0]);}
 async function delPO(id){const po=poList.find(p=>p.id===id);if(!po)return;if(!confirm(`ยืนยันการลบ PO: ${id}?`))return;poList=poList.filter(p=>p.id!==id);if(sbUrl&&sbKey){await sbReq(`po_items?po_id=eq.${id}`,{method:'DELETE'});await sbReq(`purchase_orders?id=eq.${id}`,{method:'DELETE'});}renderPO();renderDash();sa('g-alert','ok',`ลบ PO ${id} เรียบร้อยแล้ว`);}
 
@@ -2127,8 +2193,14 @@ async function submitPO(){
   const req=document.getElementById('po-req').value.trim();const sup=document.getElementById('po-sup').value.trim();if(!req||!sup){sa('po-c-alert','warn','กรุณากรอกผู้ขอและ Supplier');return;}
   const rows=[];let ok=true;
   document.querySelectorAll('#po-rows tr').forEach(tr=>{
-    const ins=tr.querySelectorAll('input');const name=tr.querySelector(`input[id^="poname"]`).value;const qty=parseInt(tr.querySelector(`input[id^="poqty"]`).value)||0;const unit=ins[2]?.value.trim()||'อัน';const price=parseFloat(ins[3]?.value)||0;
-    if(!name||qty<1){ok=false;return;}rows.push({name,qty,unit,price});
+    const idx=tr.id.replace('pr','');
+    const itemId=document.getElementById(`poid${idx}`)?.value.trim().toUpperCase()||'';
+    const name=document.getElementById(`poname${idx}`)?.value||'';
+    const qty=parseInt(document.getElementById(`poqty${idx}`)?.value)||0;
+    const unit=document.getElementById(`pounit${idx}`)?.value.trim()||'อัน';
+    const price=parseFloat(document.getElementById(`poprice${idx}`)?.value)||0;
+    if(!name||name.startsWith('✕')||qty<1){ok=false;return;}
+    rows.push({id:itemId,name,qty,unit,price});
   });
   if(!ok||rows.length===0){sa('po-c-alert','err','กรุณากรอกรายการสินค้าให้ครบ');return;}
   if(editingPoId){
