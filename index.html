@@ -615,6 +615,20 @@ textarea{resize:vertical;min-height:68px}
   thead th { font-size: 9px; padding: 7px 8px; }
   tbody td { padding: 8px 8px; font-size: 12px; }
 
+  .tw-scroll {
+    max-height: 320px;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .tw-scroll table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--n850);
+    box-shadow: 0 1px 0 var(--bd);
+  }
+
   /* Search header */
   .sh { flex-direction: column; align-items: stretch; gap: 9px; margin-bottom: 12px; }
   .sh-l { gap: 7px; }
@@ -912,12 +926,20 @@ textarea{resize:vertical;min-height:68px}
       <div class="g2">
         <div class="card">
           <div class="card-h"><div class="card-t">⟳ รายการล่าสุด</div></div>
-          <div class="tw"><table><thead><tr><th>ประเภท</th><th>สินค้า</th><th>±จำนวน</th><th>โดย</th><th>วันที่</th></tr></thead><tbody id="d-recent"></tbody></table></div>
-        </div>
+          <div class="tw-scroll">
+            <table><thead><tr><th>ประเภท</th><th>สินค้า</th><th>±จำนวน</th><th>โดย</th><th>วันที่</th></tr></thead><tbody id="d-recent"></tbody></table></div>
+          </div>
         <div class="card">
           <div class="card-h"><div class="card-t">⚠ ต้องดูแล</div></div>
-          <div class="tw"><table><thead><tr><th>สินค้า</th><th>Location</th><th>คงเหลือ</th><th>ขั้นต่ำ</th><th>สถานะ</th></tr></thead><tbody id="d-low"></tbody></table></div>
+          <div class="tw-scroll">
+            <table><thead><tr><th>สินค้า</th><th>Location</th><th>คงเหลือ</th><th>ขั้นต่ำ</th><th>สถานะ</th></tr></thead><tbody id="d-low"></tbody></table></div>
         </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <div class="card-h"><div class="card-t">🏆 Top 5 สินค้าที่เบิกบ่อยที่สุด</div></div>
+        <div class="tw-scroll">
+          <table><thead><tr><th>อันดับ</th><th>สินค้า</th><th>หมวดหมู่</th><th>Location</th><th>จำนวนที่เบิก (ครั้ง)</th><th>จำนวนรวม</th></tr></thead><tbody id="d-top5"></tbody></table></div>
       </div>
     </div>
 
@@ -982,7 +1004,7 @@ textarea{resize:vertical;min-height:68px}
               </div>
               <div class="fg">
                 <label class="fl">เลขที่เอกสาร</label>
-                <input id="recv-ref" placeholder="DO-2024-001">
+                <input id="recv-ref" placeholder="KNYYYYNNN">
               </div>
             </div>
           <div class="fg mb13"><label class="fl">หมายเหตุ</label><textarea id="recv-note" placeholder="หมายเหตุเพิ่มเติม..."></textarea></div>
@@ -1090,7 +1112,10 @@ textarea{resize:vertical;min-height:68px}
               <button class="btn btn-ghost" id="po-cancel-edit-btn" style="display:none" onclick="cancelPOEdit()">ยกเลิกการแก้ไข</button>
             </div>
           </div>
-        </div>    <!-- VIEW/EDIT PO MODAL -->
+        </div>
+      </div>
+    </div>
+      <!-- VIEW/EDIT PO MODAL -->
     <div class="mbg" id="m-po-view">
       <div class="modal modal-lg">
         <div class="mh">
@@ -1812,18 +1837,42 @@ async function syncAll(){
   if(!sbUrl||!sbKey)return;
   try{
     const[ls,its,ts,pos,pis]=await Promise.all([sbReq('locations?order=code.asc'),sbReq('items?order=created_at.asc'),sbReq('transactions?order=date.desc&limit=300'),sbReq('purchase_orders?order=date.desc'),sbReq('po_items?select=*')]);
-    if(ls?.length)locs=ls.map(r=>({id:r.id,code:r.code,name:r.name,icon:r.icon||'🗄️',floor:r.floor||'',desc:r.description||''}));
-    if(its?.length){items=its.map(r=>({id:r.id,name:r.name,cat:r.category,lid:r.location_id||'',qty:r.qty,unit:r.unit,min:r.min_qty,price:r.price||0,note:r.note||''}));const mx=Math.max(...items.map(i=>parseInt(i.id.replace(/\D/g,''))||0),0);if(mx>=ni)ni=mx+1;}
-    if(ts?.length)txns=ts.map(r=>({id:r.id,date:r.date,type:r.type,iid:r.item_id,iname:r.item_name,lid:r.location_id||'',qty:r.qty,by:r.by_person,ref:r.ref||'',note:r.note||''}));
-    if(pos?.length){poList=pos.map(r=>({id:r.id,date:r.date,req:r.requester,sup:r.supplier,need:r.needed_date||'',note:r.note||'',status:r.status,rows:[]}));if(pis?.length)pis.forEach(pi=>{const po=poList.find(p=>p.id===pi.po_id);if(po)po.rows.push({name:pi.item_name,qty:pi.qty,unit:pi.unit,price:pi.price});});}
+    
+    if(ls?.length){
+      locs=ls.map(r=>({id:r.id,code:r.code,name:r.name,icon:r.icon||'🗄️',floor:r.floor||'',desc:r.description||''}));
+      const maxL=ls.reduce((max,l)=>{const n=parseInt(l.id.replace(/\D/g,''))||0;return Math.max(max,n);},0);
+      if(maxL>=nl)nl=maxL+1;
+    }
+    
+    if(its?.length){
+      items=its.map(r=>({id:r.id,name:r.name,cat:r.category,lid:r.location_id||'',qty:r.qty,unit:r.unit,min:r.min_qty,price:r.price||0,note:r.note||''}));
+      const maxI=Math.max(...its.map(i=>parseInt(i.id.replace(/\D/g,''))||0),0);
+      if(maxI>=ni)ni=maxI+1;
+    }
+    
+    if(ts?.length){
+      txns=ts.map(r=>({id:r.id,date:r.date,type:r.type,iid:r.item_id,iname:r.item_name,lid:r.location_id||'',qty:r.qty,by:r.by_person,ref:r.ref||'',note:r.note||''}));
+      const maxT=ts.reduce((max,t)=>{const n=parseInt(t.id.replace(/\D/g,''))||0;return Math.max(max,n);},0);
+      if(maxT>=nt)nt=maxT+1;
+    }
+    
+    if(pos?.length){
+      poList=pos.map(r=>({id:r.id,date:r.date,req:r.requester,sup:r.supplier,need:r.needed_date||'',note:r.note||'',status:r.status,rows:[]}));
+      if(pis?.length)pis.forEach(pi=>{const po=poList.find(p=>p.id===pi.po_id);if(po)po.rows.push({id:pi.item_id||'',name:pi.item_name,qty:pi.qty,unit:pi.unit,price:pi.price});});
+      const maxP=pos.reduce((max,p)=>{const n=parseInt(p.id.split('-').pop())||0;return Math.max(max,n);},0);
+      if(maxP>=np)np=maxP+1;
+    }
+    
     document.getElementById('sync-lbl').textContent='⟳ '+new Date().toLocaleTimeString('th-TH');
     setConn('ok','เชื่อมต่อแล้ว');refreshAll();
+    
     try{
       const aus=await sbReq('app_users?order=created_at.asc');
       if(aus?.length){const merged=aus.map(r=>({id:r.id,name:r.name,email:r.email,pass:r.pass,role:r.role,dept:r.dept||'',created:r.created_at,active:r.active!==false}));saveUsers(merged);users=merged;if(currentUser){const fresh=merged.find(u=>u.id===currentUser.id);if(fresh){currentUser={...fresh};sessionStorage.setItem('os_current',JSON.stringify(currentUser));updateUserChip();applyRoleUI();}}}
     }catch(ue){console.warn('app_users sync skipped:',ue.message);const hint=document.getElementById('set-alert');if(hint&&hint.innerHTML===''){hint.innerHTML=`<div class="alert a-warn"><span class="ai">⚠</span>ยังไม่พบตาราง <b>app_users</b> — กรุณารัน SQL Schema ใน Supabase</div>`;}}
   }catch(e){setConn('err','Sync ไม่สำเร็จ');sa('g-alert','err','Sync ไม่สำเร็จ: '+e.message);}
 }
+
 async function saveSb(){
   sbUrl=document.getElementById('sb-url').value.trim().replace(/\/$/,'');sbKey=document.getElementById('sb-key').value.trim();
   if(!sbUrl||!sbKey){sa('set-alert','warn','กรุณากรอก URL และ Key');return;}
@@ -1968,15 +2017,40 @@ function refreshAll(){renderDash();renderInv();renderLocs();popCatLoc();renderHi
 /* ══ DASHBOARD ══ */
 function renderDash(){
   const tot=items.length,low=items.filter(i=>i.qty>0&&i.qty<=i.min).length,out=items.filter(i=>i.qty===0).length,pend=poList.filter(p=>p.status==='รออนุมัติ').length;
+  const totalVal=items.reduce((s,i)=>s+(i.qty*i.price),0); // เพิ่มบรรทัดนี้
   document.getElementById('d-metrics').innerHTML=`
     <div class="met m-c"><div class="met-lbl">สินค้าทั้งหมด</div><div class="met-val vc">${tot}</div><div class="met-sub">รายการ</div></div>
     <div class="met m-g"><div class="met-lbl">ใกล้หมด</div><div class="met-val vg">${low}</div><div class="met-sub">ต่ำกว่าขั้นต่ำ</div></div>
     <div class="met m-r"><div class="met-lbl">หมดสต็อก</div><div class="met-val vr">${out}</div><div class="met-sub">รายการ</div></div>
-    <div class="met m-p"><div class="met-lbl">PO รออนุมัติ</div><div class="met-val vp">${pend}</div><div class="met-sub">ใบสั่งซื้อ</div></div>`;
+    <div class="met m-p"><div class="met-lbl">PO รออนุมัติ</div><div class="met-val vp">${pend}</div><div class="met-sub">ใบสั่งซื้อ</div></div>
+    <div class="met m-c" style="grid-column:1/-1"><div class="met-lbl">มูลค่าสินค้าคงคลังรวม</div><div class="met-val vc" style="font-size:28px">฿${fmt(totalVal)}</div><div class="met-sub">ราคา × จำนวนคงเหลือทุกรายการ</div></div>`;
   const warns=items.filter(i=>i.qty<=i.min);
   document.getElementById('d-warn').innerHTML=warns.length?`<div class="alert a-warn" style="margin-bottom:16px"><span class="ai">⚠</span>สินค้าใกล้หมด/หมดสต็อก ${warns.length} รายการ — ${warns.map(i=>i.name).join(', ')}</div>`:'';
-  document.getElementById('d-recent').innerHTML=[...txns].slice(-8).reverse().map(t=>`<tr><td><span class="badge ${t.type==='รับสินค้า'?'b-recv':'b-iss'}">${t.type}</span></td><td style="font-weight:600">${t.iname}</td><td style="font-weight:700;color:${t.type==='รับสินค้า'?'var(--green)':'var(--red)'}">${t.type==='รับสินค้า'?'+':'-'}${t.qty}</td><td class="dim">${t.by}</td><td class="mono dim" style="font-size:11px">${t.date}</td></tr>`).join('')||`<tr><td colspan="5" class="empty">ยังไม่มีรายการ</td></tr>`;
+  document.getElementById('d-recent').innerHTML=[...txns].slice(-20).reverse().map(t=>`<tr><td><span class="badge ${t.type==='รับสินค้า'?'b-recv':'b-iss'}">${t.type}</span></td><td style="font-weight:600">${t.iname}</td><td style="font-weight:700;color:${t.type==='รับสินค้า'?'var(--green)':'var(--red)'}">${t.type==='รับสินค้า'?'+':'-'}${t.qty}</td><td class="dim">${t.by}</td><td class="mono dim" style="font-size:11px">${t.date}</td></tr>`).join('')||`<tr><td colspan="5" class="empty">ยังไม่มีรายการ</td></tr>`;
   document.getElementById('d-low').innerHTML=warns.map(i=>`<tr><td style="font-weight:600">${i.name}</td><td>${getLocBadge(i.lid)}</td><td style="font-weight:700">${i.qty}</td><td class="dim">${i.min}</td><td>${stBadge(i)}</td></tr>`).join('')||`<tr><td colspan="5" class="empty">สต็อกปกติทุกรายการ ✓</td></tr>`;
+    // Top 5 สินค้าเบิกบ่อย
+  const issueMap={};
+  txns.filter(t=>t.type==='เบิกสินค้า').forEach(t=>{
+    if(!issueMap[t.iid])issueMap[t.iid]={iid:t.iid,iname:t.iname,count:0,totalQty:0};
+    issueMap[t.iid].count++;
+    issueMap[t.iid].totalQty+=t.qty;
+  });
+  const top5=Object.values(issueMap).sort((a,b)=>b.totalQty-a.totalQty).slice(0,5);
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+  const d5=document.getElementById('d-top5');
+  if(d5){
+    d5.innerHTML=top5.length?top5.map((r,i)=>{
+      const it=items.find(x=>x.id===r.iid);
+      return`<tr>
+        <td style="font-size:18px;text-align:center">${medals[i]}</td>
+        <td style="font-weight:600">${r.iname}</td>
+        <td>${it?`<span class="badge b-cat">${it.cat}</span>`:'<span class="dim">—</span>'}</td>
+        <td>${it?getLocBadge(it.lid):'<span class="dim">—</span>'}</td>
+        <td style="font-weight:700;color:var(--purple);text-align:center">${r.count} ครั้ง</td>
+        <td style="font-weight:700;color:var(--red);text-align:center">${r.totalQty} ชิ้น</td>
+      </tr>`;
+    }).join(''):`<tr><td colspan="6" class="empty"><div class="empty-ico">📊</div>ยังไม่มีข้อมูลการเบิกสินค้า</td></tr>`;
+  }
 }
 
 /* ══ INVENTORY ══ */
@@ -2084,7 +2158,7 @@ async function doReceive(){
   it.qty+=qty;if(sbUrl&&sbKey)await sbReq(`items?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({qty:it.qty})});
   const t={id:'T'+String(nt++).padStart(3,'0'),date:now(),type:'รับสินค้า',iid:id,iname:it.name,lid:it.lid,qty,by,ref,note};txns.push(t);
   if(sbUrl&&sbKey)await sbReq('transactions',{method:'POST',body:JSON.stringify({id:t.id,date:t.date,type:'รับสินค้า',item_id:id,item_name:it.name,location_id:it.lid||null,qty,by_person:by,ref,note})});
-  sa('recv-alert','ok',`✓ รับ "${it.name}" ${qty} ${it.unit} (คงเหลือ: ${it.qty})`);
+  sa('recv-alert','ok',`รับ "${it.name}" ${qty} ${it.unit} (คงเหลือ: ${it.qty})`);
   document.getElementById('recv-item-id').value='';document.getElementById('recv-item-name').value='';
 }
 async function doIssue(){
@@ -2093,11 +2167,11 @@ async function doIssue(){
   if(!it){sa('issue-alert','warn','กรุณาระบุรหัสสินค้าให้ถูกต้อง');return;}
   const id=it.id;const qty=parseInt(document.getElementById('issue-qty').value);const by=document.getElementById('issue-by').value.trim()||currentUser?.name||'ไม่ระบุ';const pur=document.getElementById('issue-pur').value.trim();const note=document.getElementById('issue-note').value.trim();
   if(!qty||qty<1){sa('issue-alert','warn','กรุณากรอกจำนวน');return;}
-  if(qty>it.qty){sa('issue-alert','err',`✕ สินค้าไม่พอ! คงเหลือเพียง ${it.qty} ${it.unit}`);return;}
+  if(qty>it.qty){sa('issue-alert','err',`สินค้าไม่พอ! คงเหลือเพียง ${it.qty} ${it.unit}`);return;}
   it.qty-=qty;if(sbUrl&&sbKey)await sbReq(`items?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({qty:it.qty})});
   const t={id:'T'+String(nt++).padStart(3,'0'),date:now(),type:'เบิกสินค้า',iid:id,iname:it.name,lid:it.lid,qty,by,ref:pur,note};txns.push(t);
   if(sbUrl&&sbKey)await sbReq('transactions',{method:'POST',body:JSON.stringify({id:t.id,date:t.date,type:'เบิกสินค้า',item_id:id,item_name:it.name,location_id:it.lid||null,qty,by_person:by,ref:pur,note})});
-  sa('issue-alert','ok',`✓ เบิก "${it.name}" ${qty} ${it.unit} (คงเหลือ: ${it.qty})`);
+  sa('issue-alert','ok',`เบิก "${it.name}" ${qty} ${it.unit} (คงเหลือ: ${it.qty})`);
   document.getElementById('issue-item-id').value='';document.getElementById('issue-item-name').value='';
 }
 
@@ -2136,7 +2210,15 @@ function viewPO(id){
       ${po.note?`<div style="grid-column:1/-1"><div class="dim tiny">หมายเหตุ</div>${po.note}</div>`:''}
     </div>
     <table class="po-tbl"><thead><tr><th>รหัสสินค้า</th><th>สินค้า</th><th>จำนวน</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>รวม</th></tr></thead>
-    <tbody>${po.rows.map(r=>`<tr><td>${r.id}</td><td>${r.name}</td><td>${r.qty}</td><td class="dim">${r.unit}</td><td class="mono">฿${fmt(r.price)}</td><td class="mono fw7" style="color:var(--gold)">฿${fmt(r.qty*r.price)}</td></tr>`).join('')}</tbody>
+    <tbody>${po.rows.map(r=>`<tr>
+      <td class="mono" style="font-size:11px">${r.id||'<span class="dim">—</span>'}</td>
+      <td>${r.name}</td>
+      <td>${r.qty}</td>
+      <td class="dim">${r.unit}</td>
+      <td class="mono">฿${fmt(r.price)}</td>
+      <td class="mono fw7" style="color:var(--gold)">฿${fmt(r.qty*r.price)}</td>
+      </tr>`).join('')}
+    </tbody>
     <tfoot><tr><td colspan="5" style="text-align:right;font-weight:700;padding:10px;font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:var(--t3)">ยอดรวมทั้งสิ้น</td><td class="mono" style="font-size:18px;font-weight:800;color:var(--gold);padding:10px">฿${fmt(tot)}</td></tr></tfoot></table>`;
   const f=document.getElementById('po-m-foot');
   f.innerHTML=`<button class="btn btn-ghost" onclick="closeM('m-po')">ปิด</button>`;
@@ -2158,13 +2240,20 @@ function openEditPO(id){
     addPORow();
     const idx=pri;
     document.getElementById(`poid${idx}`).value=r.id||'';
-    document.getElementById(`poname${idx}`).value=r.name;
-    document.getElementById(`poname${idx}`).style.color='var(--green)';
-    document.getElementById(`poname${idx}`).style.fontWeight='600';
     document.getElementById(`poqty${idx}`).value=r.qty;
     document.getElementById(`pounit${idx}`).value=r.unit;
     document.getElementById(`poprice${idx}`).value=r.price;
-  });updPOT();
+    // ถ้ามี item_id ให้ checkPOItem หาชื่อให้อัตโนมัติ
+    // ถ้าไม่มี ใส่ชื่อตรงๆ
+    if(r.id){
+      checkPOItem(idx);
+    } else {
+      document.getElementById(`poname${idx}`).value=r.name;
+      document.getElementById(`poname${idx}`).style.color='var(--green)';
+      document.getElementById(`poname${idx}`).style.fontWeight='600';
+    }
+  });
+  updPOT();
   poTab('po-c',document.querySelectorAll('.itab')[1]);
 }
 
@@ -2205,11 +2294,29 @@ async function submitPO(){
   if(!ok||rows.length===0){sa('po-c-alert','err','กรุณากรอกรายการสินค้าให้ครบ');return;}
   if(editingPoId){
     const idx=poList.findIndex(p=>p.id===editingPoId);
-    if(idx>-1){poList[idx]={...poList[idx],req,sup,need:document.getElementById('po-need').value,note:document.getElementById('po-note').value.trim(),rows};const tot=rows.reduce((s,r)=>s+r.qty*r.price,0);if(sbUrl&&sbKey){await sbReq(`purchase_orders?id=eq.${editingPoId}`,{method:'PATCH',body:JSON.stringify({requester:req,supplier:sup,needed_date:poList[idx].need,note:poList[idx].note,total:tot})});await sbReq(`po_items?po_id=eq.${editingPoId}`,{method:'DELETE'});for(const r of rows)await sbReq('po_items',{method:'POST',body:JSON.stringify({po_id:editingPoId,item_name:r.name,qty:r.qty,unit:r.unit,price:r.price})});}sa('po-c-alert','ok',`✓ แก้ไข ${editingPoId} เรียบร้อยแล้ว`);const eid=editingPoId;editingPoId=null;setTimeout(()=>{cancelPOEdit();renderPO();renderDash();sa('g-alert','ok',`✓ แก้ไข PO ${eid} เรียบร้อยแล้ว`);},1200);}
+    if(idx>-1){poList[idx]={...poList[idx],req,sup,need:document.getElementById('po-need').value,note:document.getElementById('po-note').value.trim(),rows};const tot=rows.reduce((s,r)=>s+r.qty*r.price,0);if(sbUrl&&sbKey){await sbReq(`purchase_orders?id=eq.${editingPoId}`,{method:'PATCH',body:JSON.stringify({requester:req,supplier:sup,needed_date:poList[idx].need,note:poList[idx].note,total:tot})});
+    await sbReq(`po_items?po_id=eq.${editingPoId}`,{method:'DELETE'});
+    for(const r of rows)await sbReq('po_items',{method:'POST',body:JSON.stringify({
+      po_id:editingPoId,
+      item_id:r.id||null,
+      item_name:r.name,
+      qty:r.qty,
+      unit:r.unit,
+      price:r.price
+    })});}
+    sa('po-c-alert','ok',`✓ แก้ไข ${editingPoId} เรียบร้อยแล้ว`);const eid=editingPoId;editingPoId=null;setTimeout(()=>{cancelPOEdit();renderPO();renderDash();sa('g-alert','ok',`✓ แก้ไข PO ${eid} เรียบร้อยแล้ว`);},1200);}
     return;
   }
-  const po={id:`PO-${new Date().getFullYear()}-${String(np++).padStart(3,'0')}`,date:tod(),req,sup,need:document.getElementById('po-need').value,note:document.getElementById('po-note').value.trim(),status:'รออนุมัติ',rows};poList.push(po);const tot=rows.reduce((s,r)=>s+r.qty*r.price,0);
-  if(sbUrl&&sbKey){await sbReq('purchase_orders',{method:'POST',body:JSON.stringify({id:po.id,date:po.date,requester:req,supplier:sup,needed_date:po.need,note:po.note,status:'รออนุมัติ',total:tot})});for(const r of rows)await sbReq('po_items',{method:'POST',body:JSON.stringify({po_id:po.id,item_name:r.name,qty:r.qty,unit:r.unit,price:r.price})});}
+  const po={id:`KN${new Date().getFullYear()}${String(np++).padStart(1,'0')}`,date:tod(),req,sup,need:document.getElementById('po-need').value,note:document.getElementById('po-note').value.trim(),status:'รออนุมัติ',rows};poList.push(po);const tot=rows.reduce((s,r)=>s+r.qty*r.price,0);
+  if(sbUrl&&sbKey){await sbReq('purchase_orders',{method:'POST',body:JSON.stringify({id:po.id,date:po.date,requester:req,supplier:sup,needed_date:po.need,note:po.note,status:'รออนุมัติ',total:tot})});
+  for(const r of rows)await sbReq('po_items',{method:'POST',body:JSON.stringify({
+    po_id:po.id,
+    item_id:r.id||null,
+    item_name:r.name,
+    qty:r.qty,
+    unit:r.unit,
+    price:r.price
+  })});}
   sa('po-c-alert','ok',`✓ สร้างใบสั่งซื้อ ${po.id} เรียบร้อยแล้ว`);setTimeout(()=>{poTab('po-l',document.querySelectorAll('.itab')[0]);renderPO();renderDash();},1500);
 }
 
